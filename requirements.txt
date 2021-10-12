@@ -1,0 +1,4 @@
+pytorch==1.8.0 
+torchvision
+opencv==4.5.1
+timm==0.4.5
