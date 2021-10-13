@@ -1,3 +1,0 @@
-[submodule "dependencies/MiDas"]
-	path = dependencies/MiDas
-	url = git@github.com:isl-org/MiDaS.git
