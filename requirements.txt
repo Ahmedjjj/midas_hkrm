@@ -4,3 +4,4 @@ opencv-python==4.5.1.48
 timm==0.4.5
 notebook
 matplotlib
+paramiko
