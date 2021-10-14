@@ -6,6 +6,6 @@ COPY requirements.txt /requirements.txt
 RUN pip install --upgrade --no-cache-dir  -r /requirements.txt
 
 COPY MiDaS/ /midas
-ENV PYTHONPATH=${PYTHONPATH}:/midas
+ENV PYTHONPATH=${PYTHONPATH}:/midas:/app
 
 
