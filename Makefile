@@ -12,6 +12,6 @@ install_env:
 image:
 	@docker build -t $(DOCKERIMAGE) .
 
-notebook:
+notebook: image
 	@docker run --rm --network host -v $(shell pwd):/app -w /app \
 	$(DOCKERIMAGE) jupyter notebook --allow-root --no-browser
