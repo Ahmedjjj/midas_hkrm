@@ -1,3 +1,6 @@
 [submodule "MiDaS"]
 	path = MiDaS
 	url = git@github.com:isl-org/MiDaS.git
+[submodule "Context-aware-ZSR"]
+	path = Context-aware-ZSR
+	url = git@github.com:ruotianluo/Context-aware-ZSR.git
