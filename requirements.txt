@@ -1,7 +1,5 @@
-torch==1.8.0 
-torchvision
-opencv-python==4.5.1.48
-timm==0.4.5
+opencv-python
+timm
 notebook
 matplotlib
 paramiko
