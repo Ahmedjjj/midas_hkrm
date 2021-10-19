@@ -1,5 +1,6 @@
 opencv-python
 timm
 notebook
+ipywidgets
 matplotlib
 paramiko

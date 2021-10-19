@@ -4,3 +4,6 @@
 [submodule "Context-aware-ZSR"]
 	path = Context-aware-ZSR
 	url = git@github.com:ruotianluo/Context-aware-ZSR.git
+[submodule "edges"]
+	path = edges
+	url = git@github.com:pdollar/edges.git
