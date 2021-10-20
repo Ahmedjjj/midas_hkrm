@@ -11,13 +11,20 @@ MATLAB_FOLDER=$(shell dirname $(shell which matlab))/..
 create_env:
 	@conda create -n $(ENV) python=$(PYTHON)
 
-install_env:
+install_env_cluster:
 	@source $(CONDA_BASE)/etc/profile.d/conda.sh && \
 	conda activate $(ENV) && pip install -t $(ICCLUSTER_INSTALL_DIR) -r $(REQUIREMENTS)
 
+install_env:
+	@source $(CONDA_BASE)/etc/profile.d/conda.sh && \
+	conda activate $(ENV) && pip3 install -r $(REQUIREMENTS)
+
 install_matlab_engine:
-	source $(CONDA_BASE)/etc/profile.d/conda.sh && \
-	conda activate $(ENV) && python3 $(MATLAB_FOLDER)/extern/engines/python/setup.py install
+	@source $(CONDA_BASE)/etc/profile.d/conda.sh && \
+    conda activate $(ENV) && \
+	cd $(MATLAB_FOLDER)/extern/engines/python && \
+	python3 setup.py install && \
+	cd -
 
 image:
 	@docker build -t $(DOCKERIMAGE) .
