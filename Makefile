@@ -29,7 +29,7 @@ install_matlab_engine:
 image:
 	@docker build -t $(DOCKERIMAGE) .
 
-notebook: image
+notebook_docker: image
 	@docker run --rm --network host -v $(shell pwd):/app -w /app \
 	$(DOCKERIMAGE) jupyter notebook --allow-root --no-browser
 
