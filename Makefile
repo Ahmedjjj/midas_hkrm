@@ -38,6 +38,11 @@ install_matlab_dependencies:
 	@mex $(COMPILED_CPP_PATH)/edgeBoxesMex.cpp -outdir $(COMPILED_CPP_PATH)
 	@cd external/edges && matlab -batch "addpath(pwd); savepath;" && cd -
 
+model_save:
+	@cd external/edges/models/forest && \
+	matlab -batch "model = load('modelBsds'); save 'modelBsds.mat', model;" && \
+	cd -
+
 image:
 	@docker build -t $(DOCKERIMAGE) .
 
