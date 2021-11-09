@@ -3,15 +3,3 @@
 [submodule "external/MiDaS"]
 	path = external/MiDaS
 	url = git@github.com:Ahmedjjj/MiDaS.git
-[submodule "external/Context-aware-ZSR"]
-	path = external/Context-aware-ZSR
-	url = git@github.com:Ahmedjjj/Context-aware-ZSR.git
-[submodule "external/edges"]
-	path = external/edges
-	url = https://github.com/Ahmedjjj/edges
-[submodule "external/toolbox"]
-	path = external/toolbox
-	url = git@github.com:Ahmedjjj/toolbox.git
-[submodule "external/edge_boxes_python"]
-	path = external/edge_boxes_python
-	url = git@github.com:Ahmedjjj/edge_boxes_with_python.git
