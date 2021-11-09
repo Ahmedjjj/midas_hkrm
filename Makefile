@@ -20,10 +20,11 @@ install_env:
 	conda activate $(ENV) && pip3 install -r $(REQUIREMENTS)
 
 install_detectron:
-	TORCH_VERSION=$(shell python -c "import torch; print('.'.join(torch.__version__.split('.')[:2]))")
-	echo ${TORCH_VERSION}
-	CUDA_VERSION = $(shell python -c "import torch; print(torch.__version__.split('+')[-1])")
- 	pip install detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/${CUDA_VERSION}/torch${TORCH_VERSION}/index.html"
+	python -c "import torch, os ; \
+ 			   TORCH_VERSION = '.'.join(torch.__version__.split('.')[:2]);\
+ 			    CUDA_VERSION = torch.__version__.split('+')[-1]; \
+ 			    os.system( \
+	f'pip install detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/{CUDA_VERSION}/torch{TORCH_VERSION}/index.html')"
 
 image:
 	@docker build -t $(DOCKERIMAGE) .
