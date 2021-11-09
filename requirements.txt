@@ -4,3 +4,7 @@ notebook
 ipywidgets
 matplotlib
 paramiko
+joblib
+pyyaml
+torch
+pycocotools

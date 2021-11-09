@@ -43,6 +43,12 @@ model_save:
 	matlab -batch "model = load('modelBsds'); save 'modelBsds.mat', model;" && \
 	cd -
 
+install_detectron:
+	TORCH_VERSION=$(shell python -c "import torch; print('.'.join(torch.__version__.split('.')[:2]))")
+	echo ${TORCH_VERSION}
+	CUDA_VERSION = $(shell python -c "import torch; print(torch.__version__.split('+')[-1])")
+ 	pip install detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/${CUDA_VERSION}/torch${TORCH_VERSION}/index.html"
+
 image:
 	@docker build -t $(DOCKERIMAGE) .
 
