@@ -2,7 +2,7 @@ SHELL := /bin/bash
 
 ENV=jellouli-env
 REQUIREMENTS=requirements.txt
-PYTHON=3.6
+PYTHON=3.9
 CONDA_BASE=$(shell conda info --base)
 ICCLUSTER_INSTALL_DIR=/ivrldata1/students/2021-fall-sp-jellouli/.local/
 
@@ -20,6 +20,8 @@ install_env:
 	conda activate $(ENV) && pip3 install -r $(REQUIREMENTS)
 
 install_detectron:
+	@source $(CONDA_BASE)/etc/profile.d/conda.sh && \
+	conda activate $(ENV) && \
 	python -c "import torch, os ; \
  			   TORCH_VERSION = '.'.join(torch.__version__.split('.')[:2]);\
  			    CUDA_VERSION = torch.__version__.split('+')[-1]; \
