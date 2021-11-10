@@ -54,8 +54,7 @@ class MRCNNFeatureExtractor(ObjectFeatureExtractor):
                 images = [image[::-1] for image in images]
             model_input = [
                 {'image': torch.tensor(
-                    self.aug.get_transform(image).apply_image(image).astype("float32").transpose(2, 0,
-                                                                                                 1)),
+                    self.aug.get_transform(image).apply_image(image).astype("float32").transpose(2, 0, 1)),
                     'height': image.shape[0],
                     'width': image.shape[1]}
                 for image in images]
