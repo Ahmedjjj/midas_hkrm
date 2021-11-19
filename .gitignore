@@ -131,4 +131,5 @@ dmypy.json
 # PyCharm files
 .idea/
 
-data/datasets
+data/datasets/
+!data/datasets/coco/annotations
