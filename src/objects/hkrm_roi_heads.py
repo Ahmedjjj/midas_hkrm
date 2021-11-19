@@ -10,7 +10,7 @@ from torch import nn
 import torch.nn.functional as F
 
 from detectron2.config import configurable
-from detectron2.modeling.roi_heads import ROI_HEAD_REGISTRY, ROIHeads
+from detectron2.modeling.roi_heads import ROI_HEADS_REGISTRY, ROIHeads
 
 from detectron2.modeling.roi_heads.box_head import build_box_head
 from detectron2.modeling.poolers import ROIPooler
@@ -40,7 +40,7 @@ class ExplicitFeatureRelationshipModule(nn.Module):
 
         for layer_index in range(1, len(layer_sizes)):
             self.relationship_scorer.add_module(
-                f"fc{layer_index}",
+                f"fc_{layer_index}",
                 nn.Sequential(
                     nn.Linear(layer_sizes[layer_index - 1],
                               layer_sizes[layer_index]),
@@ -49,7 +49,7 @@ class ExplicitFeatureRelationshipModule(nn.Module):
             )
 
         self.relationship_scorer.add_module(
-            "fc{output}", nn.Linear(layer_sizes[-1], 1))
+            "fc_output", nn.Linear(layer_sizes[-1], 1))
 
         # Simple linear projection to desired dimension
         self.feature_transform = nn.Linear(
@@ -94,8 +94,7 @@ class HKRMBoxHead(nn.Module):
         super(HKRMBoxHead, self).__init__()
 
         self.base_box_head = base_box_head
-        # in_features = base_box_head.output_shape.channels
-        in_features = 4
+        in_features = base_box_head.output_shape.channels
 
         # for now the feature transforms are hardcoded, since they are not the real point of the project
         self.attribute_feature_transform = ExplicitFeatureRelationshipModule(
@@ -176,7 +175,7 @@ class HKRMBoxHead(nn.Module):
         }
 
 
-@ROI_HEAD_REGISTRY.register()
+@ROI_HEADS_REGISTRY.register()
 class HKRMROIHeads(ROIHeads):
 
     @configurable
@@ -184,7 +183,7 @@ class HKRMROIHeads(ROIHeads):
                  *,
                  box_in_features: List[str],
                  box_pooler: ROIPooler,
-                 hkrm_box_head: nn.Module,
+                 box_head: nn.Module,
                  box_predictor: nn.Module,
                  **kwargs):
 
@@ -192,11 +191,11 @@ class HKRMROIHeads(ROIHeads):
 
         self.box_in_features = box_in_features
         self.box_pooler = box_pooler
-        self.box_head = hkrm_box_head
+        self.box_head = box_head
         self.box_predictor = box_predictor
 
     @classmethod
-    def _init_hkrm_box_head(cfg, input_shape):
+    def _init_hkrm_box_head(cls, cfg, input_shape):
 
         in_features = cfg.MODEL.ROI_HEADS.IN_FEATURES
         pooler_resolution = cfg.MODEL.ROI_BOX_HEAD.POOLER_RESOLUTION
@@ -230,7 +229,7 @@ class HKRMROIHeads(ROIHeads):
             attrib_matrix = pickle.load(f)
 
         hkrm_box_head = HKRMBoxHead(base_box_head=base_box_head, attribute_knowledge_matrix=attrib_matrix,
-                                    relationship_matrix_path=relationship_matrix)
+                                    relationship_knowledge_matrix=relationship_matrix)
 
         box_predictor = FastRCNNOutputLayers(cfg, base_box_head.output_shape)
         return {
