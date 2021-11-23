@@ -4,6 +4,8 @@ from detectron2 import model_zoo
 from detectron2.config import get_cfg
 from detectron2.config.config import CfgNode
 from detectron2.modeling import build_model
+from detectron2.engine.defaults import DefaultTrainer
+from detectron2.evaluation import COCOEvaluator
 
 from pathlib import Path
 from src.utils.errors import require
@@ -29,6 +31,9 @@ def construct_config(save=False, save_path=None):
     cfg.MODEL.HKRM.ATTRIB_PATH = str(
         (FILE_FOLDER.parent.parent / 'data' / 'relationship_matrices' / 'COCO_graph_a.pkl').absolute())
 
+    cfg.MODEL.RPN.POST_NMS_TOPK_TRAIN = 128 # like the paper
+    cfg.MODEL.RPN.POST_NMS_TOPK_TEST = 128 
+
     if save:
         with open(save_path, 'w') as f:
             f.write(cfg.dump())
@@ -39,3 +44,13 @@ def construct_config(save=False, save_path=None):
 def get_hkrm_model():
     cfg = construct_config()
     return build_model(cfg)
+
+class HKRMTrainer(DefaultTrainer):
+    def __init__(self, cfg:CfgNode):
+        super().__init__(cfg)
+
+    @classmethod
+    def build_evaluator(cls, cfg, dataset_name):
+        return COCOEvaluator(dataset_name, output_dir=cfg.OUTPUT_DIR)
+
+
