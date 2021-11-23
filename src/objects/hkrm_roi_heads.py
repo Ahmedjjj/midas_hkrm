@@ -43,7 +43,7 @@ class ExplicitFeatureRelationshipModule(nn.Module):
                 f"fc_{layer_index}",
                 nn.Sequential(
                     nn.Linear(layer_sizes[layer_index - 1],
-                              layer_sizes[layer_index]),
+                               layer_sizes[layer_index]),
                     nn.ReLU(),
                 ),
             )
@@ -65,7 +65,7 @@ class ExplicitFeatureRelationshipModule(nn.Module):
                          features.unsqueeze(0)).reshape(-1, num_features)
 
         # predicted_scores
-        scores = self.relationship_scorer(dist)
+        scores = self.relationship_scorer(dist).reshape(-1)
 
         # transform features (E F W in the paper)
         transformation_matrix = F.softmax(
@@ -76,9 +76,10 @@ class ExplicitFeatureRelationshipModule(nn.Module):
         if self.training:
             # ground truth scores
             gt_scores = self.knowledge_matrix[np.repeat(
-                gt_classes, num_objects), np.tile(gt_classes, num_objects)]
-            loss = F.mse_loss(scores, gt_scores)
+                gt_classes.cpu(), num_objects), np.tile(gt_classes.cpu(), num_objects)]
+            loss = F.mse_loss(scores, torch.tensor(gt_scores, dtype=scores.dtype, device=scores.device))
             return transformed_features, loss
+
         else:
             return transformed_features
 
@@ -89,6 +90,7 @@ class HKRMBoxHead(nn.Module):
         base_box_head: nn.Module,
         attribute_knowledge_matrix: np.array = None,
         relationship_knowledge_matrix: np.array = None,
+        device = 'cuda'
     ):
 
         super(HKRMBoxHead, self).__init__()
@@ -112,13 +114,16 @@ class HKRMBoxHead(nn.Module):
             transformed_feature_size=in_features // 2,
             knowledge_matrix=relationship_knowledge_matrix,
         )
+        self.device = device
 
     def _forward_inference(self, features, proposals):
         with torch.no_grad():
             start = 0
-            result_features = torch.empty(
-                0, *features.shape[1:], dtype=features.dtype)
             base_box_head_features = self.base_box_head(features).float()
+
+            result_features = torch.empty(
+                    0, *base_box_head_features.shape[1:], dtype=base_box_head_features.dtype, device=self.device)
+
             for instance in proposals:
                 image_features = base_box_head_features[start:start + len(
                     instance)]
@@ -132,6 +137,7 @@ class HKRMBoxHead(nn.Module):
 
                 result_features = torch.cat(
                     (result_features, image_transformed_features), dim=0)
+
             return result_features
 
     def forward(self, features, proposals):
@@ -142,10 +148,12 @@ class HKRMBoxHead(nn.Module):
         relationship_loss = 0
 
         start = 0
+
         # base box head gives us a vector for each object
-        result_features = torch.empty(
-            0, *features.shape[1:], dtype=features.dtype)
         base_box_head_features = self.base_box_head(features).float()
+
+        result_features = torch.empty(
+            0, *base_box_head_features.shape[1:], dtype=base_box_head_features.dtype, device=self.device)
 
         for instance in proposals:
             image_features = base_box_head_features[start:start +
@@ -162,12 +170,12 @@ class HKRMBoxHead(nn.Module):
             attrib_loss += attrib_loss_img
             relationship_loss += relation_loss_img
 
+            image_transformed_features = torch.cat(
+                    (attrib_transformed_features, relation_transformed_features), dim=1)
+
             result_features = torch.cat(
-                result_features,
-                torch.cat(attrib_transformed_features,
-                          relation_transformed_features,
-                          dim=1),
-                dim=0,
+                (result_features, image_transformed_features),
+                dim=0
             )
 
         return result_features, {
@@ -230,7 +238,7 @@ class HKRMROIHeads(ROIHeads):
             attrib_matrix = pickle.load(f)
 
         hkrm_box_head = HKRMBoxHead(base_box_head=base_box_head, attribute_knowledge_matrix=attrib_matrix,
-                                    relationship_knowledge_matrix=relationship_matrix)
+                                    relationship_knowledge_matrix=relationship_matrix, device=cfg.MODEL.DEVICE)
 
         box_predictor = FastRCNNOutputLayers(cfg, base_box_head.output_shape)
         return {
@@ -262,7 +270,7 @@ class HKRMROIHeads(ROIHeads):
             features, [x.proposal_boxes for x in proposals])
         losses = {}
         if self.training:
-            relation_loss, box_features = self.box_head(
+            box_features, relation_loss = self.box_head(
                 box_features, proposals)
             losses.update(relation_loss)
         else:
@@ -271,8 +279,8 @@ class HKRMROIHeads(ROIHeads):
         predictions = self.box_predictor(box_features)
         if self.training:
             losses.update(self.box_predictor.losses(predictions, proposals))
-            return losses
+            return predictions, losses
         else:
             pred_instances, _ = self.box_predictor.inference(
                 predictions, proposals)
-            return pred_instances
+            return pred_instances, {}
