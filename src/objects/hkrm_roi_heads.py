@@ -143,9 +143,10 @@ class HKRMBoxHead(nn.Module):
 
         start = 0
         # base box head gives us a vector for each object
-        base_box_head_features = self.base_box_head(features)
+        result_features = torch.empty(
+            0, *features.shape[1:], dtype=features.dtype)
+        base_box_head_features = self.base_box_head(features).float()
 
-        result_features = torch.empty(features.shape, features.dtype)
         for instance in proposals:
             image_features = base_box_head_features[start:start +
                                                     len(instance)]
@@ -261,10 +262,11 @@ class HKRMROIHeads(ROIHeads):
             features, [x.proposal_boxes for x in proposals])
         losses = {}
         if self.training:
-            relation_loss, box_features = self.box_head(features, proposals)
+            relation_loss, box_features = self.box_head(
+                box_features, proposals)
             losses.update(relation_loss)
         else:
-            box_features = self.box_head(features, proposals)
+            box_features = self.box_head(box_features, proposals)
 
         predictions = self.box_predictor(box_features)
         if self.training:
