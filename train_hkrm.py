@@ -12,6 +12,7 @@ def main():
     cfg.SOLVER.IMS_PER_BATCH = 10
     cfg.TEST.EVAL_PERIOD = COCO_DATASET_SIZE // cfg.SOLVER.IMS_PER_BATCH
     cfg.OUTPUT_DIR = '/ivrldata1/students/2021-fall-sp-jellouli/output'
+    cfg.SOLVER.BASE_LR = 0.02 / 16 
 
     setup_logger(os.path.join(cfg.OUTPUT_DIR, 'logs'))
 
