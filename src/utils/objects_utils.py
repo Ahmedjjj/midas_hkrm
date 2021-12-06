@@ -22,6 +22,8 @@ def construct_config(save=False, save_path=None):
     # Our model is a modification of the Faster-RCNN
     cfg.merge_from_file(model_zoo.get_config_file(
         "COCO-Detection/faster_rcnn_R_101_FPN_3x.yaml"))
+    
+    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/faster_rcnn_R_101_FPN_3x.yaml")
 
     cfg.MODEL.ROI_HEADS.NAME = "HKRMROIHeads"
     cfg.MODEL.HKRM = CfgNode()
