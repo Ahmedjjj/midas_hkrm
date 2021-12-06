@@ -22,7 +22,7 @@ def construct_config(save=False, save_path=None):
     # Our model is a modification of the Faster-RCNN
     cfg.merge_from_file(model_zoo.get_config_file(
         "COCO-Detection/faster_rcnn_R_101_FPN_3x.yaml"))
-    
+
     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/faster_rcnn_R_101_FPN_3x.yaml")
 
     cfg.MODEL.ROI_HEADS.NAME = "HKRMROIHeads"
@@ -33,8 +33,8 @@ def construct_config(save=False, save_path=None):
     cfg.MODEL.HKRM.ATTRIB_PATH = str(
         (FILE_FOLDER.parent.parent / 'data' / 'relationship_matrices' / 'COCO_graph_a.pkl').absolute())
 
-    cfg.MODEL.RPN.POST_NMS_TOPK_TRAIN = 128 # like the paper
-    cfg.MODEL.RPN.POST_NMS_TOPK_TEST = 128 
+    cfg.MODEL.RPN.POST_NMS_TOPK_TRAIN = 128  # like the paper
+    cfg.MODEL.RPN.POST_NMS_TOPK_TEST = 128
 
     if save:
         with open(save_path, 'w') as f:
@@ -47,12 +47,11 @@ def get_hkrm_model():
     cfg = construct_config()
     return build_model(cfg)
 
+
 class HKRMTrainer(DefaultTrainer):
-    def __init__(self, cfg:CfgNode):
+    def __init__(self, cfg: CfgNode):
         super().__init__(cfg)
 
     @classmethod
     def build_evaluator(cls, cfg, dataset_name):
         return COCOEvaluator(dataset_name, output_dir=cfg.OUTPUT_DIR)
-
-

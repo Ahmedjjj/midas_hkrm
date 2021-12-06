@@ -6,6 +6,7 @@ import numpy as np
 from midas.blocks import _make_encoder
 from src.objects.features import ObjectFeatureExtractor
 
+
 class MidasHKRMNet(nn.Module):
     """
     A modified MiDaS network that uses object features as extra feature maps in the decoder
@@ -13,14 +14,15 @@ class MidasHKRMNet(nn.Module):
     def __init__(object_feature_extractor: ObjectFeatureExtractor,
                  object_feature_dimension: int = 1024,
                  max_objects: int,
-                 pretrained_resnet: bool=True,
-                 features = 256):
-        
+                 pretrained_resnet: bool = True,
+                 features=256):
+
         super().__init__()
 
         # basic resnet encoder
-        self.backbone, self.channel_reduc = _make_encoder(backbone="resnext101_wsl", features=features, use_pretrained=pretrained_resnet)
-        
+        self.backbone, self.channel_reduc = _make_encoder(
+            backbone="resnext101_wsl", features=features, use_pretrained=pretrained_resnet)
+
         # backbone object feature extractor
         self.object_feature_extractor = object_feature_extractor
         self.object_feature_dimension = object_feature_dimension
@@ -37,7 +39,6 @@ class MidasHKRMNet(nn.Module):
         self.refinenet_3 = FeatureFusionBlock(features + max_objects)
         self.refinenet_2 = FeatureFusionBlock(features + max_objects)
         self.refinenet_1 = FeatureFusionBlock(features + max_objects)
-
 
         # same as MidaS
         self.output_conv = nn.Sequential(
@@ -66,7 +67,7 @@ class MidasHKRMNet(nn.Module):
         obj_features_1 = self.object_feature_mapper_1(obj_features).reshape(-1, 72, 96)
         obj_features_2 = self.object_feature_mapper_2(obj_features).reshape(-1, 36, 48)
         obj_features_3 = self.object_feature_mapper_3(obj_features).reshape(-1, 18, 24)
-        obj_features_4 = self.object_feature_mapper_4(obj_features).reshape(-1, 9 , 12)
+        obj_features_4 = self.object_feature_mapper_4(obj_features).reshape(-1, 9, 12)
 
         # same as MiDaS
         path_4 = self.scratch.refinenet4(torch.cat((layer_4_rn, obj_features_4), dim=-3))
@@ -86,14 +87,11 @@ class MidasHKRMNet(nn.Module):
         final_tensors = []
         for start, end in zip(starts, ends):
             final_tensors.append(self._pad_features(obj_features[start: end]))
-        
+
         return torch.cat(final_tensors).reshape(-1, self.max_objects, self.object_feature_dimension)
 
     def _pad_features(self, input_tensor):
         if input_tensor.shape[0] > self.max_objects:
-            return input_tensor [: self.max_objects]
+            return input_tensor[: self.max_objects]
 
-        return F.pad(input_tensor, (0, 0 , 0, self.max_objects - input_tensor.shape[0]))
-        
-
-
+        return F.pad(input_tensor, (0, 0, 0, self.max_objects - input_tensor.shape[0]))

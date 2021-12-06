@@ -14,9 +14,9 @@ class ObjectDetectionBackbone(enum.Enum):
         self.config = config
         self.weights = weights
 
-    MASK_RCNN_R_50_FPN = ("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml", \
+    MASK_RCNN_R_50_FPN = ("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml",
                           "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
-    MASK_RCNN_R_101_FPN = ("COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml", \
+    MASK_RCNN_R_101_FPN = ("COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml",
                            "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml")
 
 
