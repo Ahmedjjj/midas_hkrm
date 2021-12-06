@@ -10,9 +10,9 @@ def main():
     COCO_DATASET_SIZE = 117266 
 
     cfg.SOLVER.IMS_PER_BATCH = 10
-    cfg.TEST.EVAL_PERIOD = COCO_DATASET_SIZE // cfg.SOLVER.IMS_PER_BATCH
+    cfg.TEST.EVAL_PERIOD = 0 
     cfg.OUTPUT_DIR = '/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output'
-    cfg.SOLVER.BASE_LR = 0.02 / 16 
+    cfg.SOLVER.BASE_LR = 0.01
 
     setup_logger(os.path.join(cfg.OUTPUT_DIR, 'logs'))
 
