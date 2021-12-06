@@ -27,7 +27,7 @@ class ObjectFeatureExtractor(abc.ABC):
 
 
 class MRCNNFeatureExtractor(ObjectFeatureExtractor):
-    def __init__(self, backbone: ObjectDetectionBackbone, score_threshold=0.5, device='gpu'):
+    def __init__(self, backbone: ObjectDetectionBackbone, score_threshold=0.5, device='cuda'):
         cfg = get_cfg()
         cfg.merge_from_file(model_zoo.get_config_file(backbone.config))
         cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(backbone.weights)
