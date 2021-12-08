@@ -1,6 +1,6 @@
 import abc
 import enum
-from typing import List
+from typing import Iterable, Union
 
 import detectron2.data.transforms as T
 import torch
@@ -21,7 +21,7 @@ class ObjectDetector(abc.ABC):
 
         Args:
             imgs (List[np.array]): image list, should be in the same format as the model expected format
-            outputs (List[str]): a combination of ["features", "classes", "masks"]
+            outputs (List[str]): a combination of ["features", "num_objects", "classes", "masks"]
 
         """
         raise NotImplementedError()
@@ -59,7 +59,7 @@ class GeneralizedRCNNObjectDetector(ObjectDetector):
             [cfg.INPUT.MIN_SIZE_TEST, cfg.INPUT.MIN_SIZE_TEST], cfg.INPUT.MAX_SIZE_TEST
         )
 
-    def get_object_features(self, imgs: List[np.array], outputs: List[str], **kwargs):
+    def get_object_features(self, imgs: Iterable[float], outputs: List[str], **kwargs):
         with torch.no_grad():
             model_input = []
             for img in imgs:
@@ -90,10 +90,11 @@ class GeneralizedRCNNObjectDetector(ObjectDetector):
                 object_features = self.model.roi_heads.box_pooler(object_features, [x.pred_boxes for x in instances])
                 object_features = self.model.roi_heads.box_head(object_features)
 
-                indices = [len(i) for i in instances]
-
                 final_output.append(object_features)
-                final_output.append(indices)
+
+            if "num_objects" in outputs:
+                num_objects = [len(i) for i in instances]
+                final_output.append(num_objects)
 
             if "classes" in outputs:
                 classes = [instance.get_fields()['pred_classes'] for instance in instances]
