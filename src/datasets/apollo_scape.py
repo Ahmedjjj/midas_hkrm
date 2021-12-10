@@ -19,9 +19,9 @@ class ApolloScape(RemoteDataset):
                     {'imgs': 'test/camera_6', 'labels': None}]
 
         else:
-            return [{'imgs': 'train/stereo_train_001/camera_5', 'labels': 'train/stereo_train_001/disparity'},
-                    {'imgs': 'train/stereo_train_002/camera_5', 'labels': 'train/stereo_train_002/disparity'},
-                    {'imgs': 'train/stereo_train_003/camera_5', 'labels': 'train/stereo_train_003/disparity'},
+            return [{'imgs': 'stereo_train_001/camera_5', 'labels': 'stereo_train_001/disparity'},
+                    {'imgs': 'stereo_train_002/camera_5', 'labels': 'stereo_train_002/disparity'},
+                    {'imgs': 'stereo_train_003/camera_5', 'labels': 'stereo_train_003/disparity'},
                     ]
 
     def labels_filename(self, img_name):
