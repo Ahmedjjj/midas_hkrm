@@ -14,17 +14,6 @@ from typing import List
 from src.utils.depth_utils import pad_features, pad_masks
 
 
-class ResNetSizes(enum.Enum):
-    def __init__(self, height, width):
-        self.height = height
-        self.width = width
-
-    LAYER_1 = (72, 96)
-    LAYER_2 = (36, 48)
-    LAYER_3 = (18, 24)
-    LAYER_4 = (9, 12)
-
-
 class MidasHKRMNet(nn.Module):
     """
     A modified MiDaS network that uses object features as extra feature maps in the decoder
@@ -106,8 +95,8 @@ class MidasHKRMNet(nn.Module):
 
         obj_features = pad_features(features, num_objects, self.max_objects)
 
-        for i in range(len(mask)):
-            mask[i] *= classes[i] + 1
+        for i in range(len(masks)):
+            masks[i] *= classes[i] + 1
 
         masks = pad_masks(masks, self.max_objects)
 
