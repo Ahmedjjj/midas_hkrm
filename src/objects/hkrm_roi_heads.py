@@ -43,7 +43,7 @@ class ExplicitFeatureRelationshipModule(nn.Module):
                 f"fc_{layer_index}",
                 nn.Sequential(
                     nn.Linear(layer_sizes[layer_index - 1],
-                               layer_sizes[layer_index]),
+                              layer_sizes[layer_index]),
                     nn.ReLU(),
                 ),
             )
@@ -90,7 +90,7 @@ class HKRMBoxHead(nn.Module):
         base_box_head: nn.Module,
         attribute_knowledge_matrix: np.array = None,
         relationship_knowledge_matrix: np.array = None,
-        device = 'cuda'
+        device='cuda'
     ):
 
         super(HKRMBoxHead, self).__init__()
@@ -122,7 +122,7 @@ class HKRMBoxHead(nn.Module):
             base_box_head_features = self.base_box_head(features).float()
 
             result_features = torch.empty(
-                    0, *base_box_head_features.shape[1:], dtype=base_box_head_features.dtype, device=self.device)
+                0, *base_box_head_features.shape[1:], dtype=base_box_head_features.dtype, device=self.device)
 
             for instance in proposals:
                 image_features = base_box_head_features[start:start + len(
@@ -171,7 +171,7 @@ class HKRMBoxHead(nn.Module):
             relationship_loss += relation_loss_img
 
             image_transformed_features = torch.cat(
-                    (attrib_transformed_features, relation_transformed_features), dim=1)
+                (attrib_transformed_features, relation_transformed_features), dim=1)
 
             result_features = torch.cat(
                 (result_features, image_transformed_features),
@@ -198,7 +198,7 @@ class HKRMROIHeads(ROIHeads):
 
         super().__init__(**kwargs)
 
-        self.box_in_features = box_in_features
+        self.in_features = box_in_features
         self.box_pooler = box_pooler
         self.box_head = box_head
         self.box_predictor = box_predictor
@@ -265,7 +265,7 @@ class HKRMROIHeads(ROIHeads):
         if self.training:
             proposals = self.label_and_sample_proposals(proposals, targets)
 
-        features = [features[f] for f in self.box_in_features]
+        features = [features[f] for f in self.in_features]
         box_features = self.box_pooler(
             features, [x.proposal_boxes for x in proposals])
         losses = {}
