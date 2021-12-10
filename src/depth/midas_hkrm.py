@@ -83,7 +83,6 @@ class MidasHKRMNet(nn.Module):
 
         require(len(object_detector_input) == depth_input.shape[0],
                 "detector image number is different from from number of inputs!")
-        # require(depth_input.shape[2:] == (384, 384), "network has been configured for image of shape 384 x 384")
 
         # Resnet
         layer_1 = self.backbone.layer1(depth_input)
@@ -106,6 +105,10 @@ class MidasHKRMNet(nn.Module):
             object_detector_input, outputs=["features", "num_objects", "classes", "masks"])
 
         obj_features = pad_features(features, num_objects, self.max_objects)
+
+        for i in range(len(mask)):
+            mask[i] *= classes[i] + 1
+
         masks = pad_masks(masks, self.max_objects)
 
         # convert object features into feature maps
