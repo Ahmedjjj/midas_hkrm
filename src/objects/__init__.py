@@ -1,1 +1,1 @@
-import src.objects.hkrm_roi_heads
+from src.objects.hkrm_roi_heads import HKRMROIHeads

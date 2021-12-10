@@ -1,6 +1,6 @@
 import abc
 import enum
-from typing import Iterable, Union
+from typing import Union, List
 
 import detectron2.data.transforms as T
 import torch
@@ -10,12 +10,13 @@ from detectron2.config import get_cfg
 from detectron2.config import CfgNode
 from detectron2.modeling import build_model
 import numpy as np
+from src.objects import HKRMROIHeads
 
 
 class ObjectDetector(abc.ABC):
 
     @abc.abstractmethod
-    def get_object_features(self, imgs: List[np.array], outputs: List[str], **kwargs):
+    def get_object_features(self, imgs: Union[List[np.array], np.array, torch.tensor], outputs: List[str], **kwargs):
         """
         Extract object features, mask, classes from a list of images
 
@@ -30,7 +31,6 @@ class ObjectDetector(abc.ABC):
     def get_object_mask(cls, img, box_coords):
         res = torch.zeros(img.shape[:2])
         obj_coords = [int(coord) for coord in box_coords]
-        print(obj_coords)
         x0, y0, x1, y1 = obj_coords
         res[y0: y1, x0:x1] = 1
         return res
@@ -49,7 +49,7 @@ class GeneralizedRCNNObjectDetector(ObjectDetector):
     """ A Wrapper around a detectron2 based object detector
     """
 
-    def __init__(self, cfg: CfgNode):
+    def __init__(self, cfg: CfgNode, resize=False):
         self.model = build_model(cfg)
         DetectionCheckpointer(self.model).load(cfg.MODEL.WEIGHTS)
         self.model.eval()
@@ -58,13 +58,16 @@ class GeneralizedRCNNObjectDetector(ObjectDetector):
         self.aug = T.ResizeShortestEdge(
             [cfg.INPUT.MIN_SIZE_TEST, cfg.INPUT.MIN_SIZE_TEST], cfg.INPUT.MAX_SIZE_TEST
         )
+        self.resize = resize
 
-    def get_object_features(self, imgs: Iterable[float], outputs: List[str], **kwargs):
+    def get_object_features(self, imgs: Union[List[np.array], np.array, torch.tensor], outputs: List[str], **kwargs):
         with torch.no_grad():
             model_input = []
             for img in imgs:
                 height, width = img.shape[:2]
-                img = self.aug.get_transform(img).apply_image(img).astype("float32").transpose(2, 0, 1)
+                if self.resize:
+                    img = self.aug.get_transform(img).apply_image(img)
+                img = img.astype("float32").transpose(2, 0, 1)
                 model_input.append({"image": torch.tensor(img, device=self.device),
                                     "height": height, "width": width})
 
@@ -80,7 +83,7 @@ class GeneralizedRCNNObjectDetector(ObjectDetector):
             instances, _ = self.model.roi_heads(preprocessed_images, features, proposals)
 
             # small detail, rescale the output instances
-            instances = [x["instances"] for x in self.model._postprocess(
+            instances_r = [x["instances"] for x in self.model._postprocess(
                 instances, model_input, preprocessed_images.image_sizes)]
 
             final_output = []
@@ -88,7 +91,11 @@ class GeneralizedRCNNObjectDetector(ObjectDetector):
             if "features" in outputs:
                 object_features = [features[f] for f in self.model.roi_heads.in_features]
                 object_features = self.model.roi_heads.box_pooler(object_features, [x.pred_boxes for x in instances])
-                object_features = self.model.roi_heads.box_head(object_features)
+
+                if isinstance(self.model.roi_heads, HKRMROIHeads):
+                    object_features = self.model.roi_heads.box_head(object_features, instances)
+                else:
+                    object_features = self.model.roi_heads.box_head(object_features)
 
                 final_output.append(object_features)
 
@@ -102,10 +109,10 @@ class GeneralizedRCNNObjectDetector(ObjectDetector):
 
             if "masks" in outputs:
                 masks = []
-                for img, instance in zip(imgs, instances):
+                for img, instance in zip(imgs, instances_r):
                     boxes = instance.get_fields()['pred_boxes'].tensor
                     masks.append(super().get_batch_object_masks(img, boxes).to(self.device))
 
                 final_output.append(masks)
 
-            return final_output
+            return tuple(final_output)
