@@ -1,22 +1,19 @@
-import posixpath
 
-from src.datasets.remote_dataset import RemoteDataset
+from src.datasets import Mix6Dataset
+from src.utils import map_disp_to_0_1
+from src.utils import read_image
 
 
-class ApolloScape(RemoteDataset):
-    def __init__(self, remote=False, test=False, username=None):
-        super().__init__(remote, username=username)
-        self._test = test
-
+class ApolloScape(Mix6Dataset):
     @property
-    def path_prefix(self):
-        return '/runai-ivrl-scratch/students/2021-fall-sp-jellouli/mix6/ApolloScape'
+    def name(self):
+        return "ApolloScape"
 
     @property
     def locations(self):
         if self.test:
-            return [{'imgs': 'test/camera_5', 'labels': None},
-                    {'imgs': 'test/camera_6', 'labels': None}]
+            return [{'imgs': 'test/camera_5'},
+                    {'imgs': 'test/camera_6'}]
 
         else:
             return [{'imgs': 'stereo_train_001/camera_5', 'labels': 'stereo_train_001/disparity'},
@@ -24,9 +21,5 @@ class ApolloScape(RemoteDataset):
                     {'imgs': 'stereo_train_003/camera_5', 'labels': 'stereo_train_003/disparity'},
                     ]
 
-    def labels_filename(self, img_name):
-        return posixpath.splitext(img_name)[0] + '.png'
-
-    @property
-    def test(self):
-        return self._test
+    def get_disparity(self, labels_path):
+        return map_disp_to_0_1(read_image(labels_path, grayscale=True))

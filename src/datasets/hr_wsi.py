@@ -1,16 +1,11 @@
-import posixpath
+from src.datasets import Mix6Dataset
+from src.utils import map_disp_to_0_1, read_image
 
-from src.datasets.remote_dataset import RemoteDataset
 
-
-class HRWSI(RemoteDataset):
-    def __init__(self, remote=False, test=False, username=None):
-        super().__init__(remote, username=username)
-        self._test = test
-
+class HRWSI(Mix6Dataset):
     @property
-    def path_prefix(self):
-        return '/runai-ivrl-scratch/students/2021-fall-sp-jellouli/mix6/HR-WSI'
+    def name(self):
+        return "HR-WSI"
 
     @property
     def locations(self):
@@ -19,9 +14,5 @@ class HRWSI(RemoteDataset):
         else:
             return [{'imgs': 'train/imgs', 'labels': 'train/gts'}]
 
-    def labels_filename(self, img_name):
-        return posixpath.splitext(img_name)[0] + '.png'
-
-    @property
-    def test(self):
-        return self._test
+    def get_disparity(self, labels_path):
+        return map_disp_to_0_1(read_image(labels_path, grayscale=True))
