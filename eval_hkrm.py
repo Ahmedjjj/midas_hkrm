@@ -26,13 +26,13 @@ def main():
 
     models = glob.glob(os.path.join(OUTPUT_DIR, 'model_*.pth'))
     res = dict()
-    with open(os.path.join('/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output', 'eval.pickle'), 'wb') as handle:
-        for checkpoint_f in sorted(models):
-            checkpoint = torch.load(checkpoint_f)
-            model.load_state_dict(checkpoint['model'])
-            res[checkpoint_f] = (inference_on_dataset(model, dataset, evaluator))
+    for checkpoint_f in sorted(models):
+        checkpoint = torch.load(checkpoint_f)
+        model.load_state_dict(checkpoint['model'])
+        res[checkpoint_f] = (inference_on_dataset(model, dataset, evaluator))
 
-            pickle.dump(res, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open(os.path.join('/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output', 'eval.pickle'), 'wb') as handle:
+        pickle.dump(res, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 if __name__ == "__main__":
