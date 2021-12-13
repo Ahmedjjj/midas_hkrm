@@ -1,8 +1,6 @@
 from src.utils.img_utils import read_image
 from torch.utils.data import Dataset
 import os
-import posixpath
-import random
 from abc import ABC, abstractmethod
 import glob
 

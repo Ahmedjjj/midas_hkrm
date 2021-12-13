@@ -32,7 +32,6 @@ class MegaDepth(Mix6Dataset):
         return os.path.splitext(img_name)[0] + '.h5'
 
     def get_disparity(self, labels_path):
-        # https://github.com/isl-org/MiDaS/issues/16
         with h5py.File(labels_path, 'r') as f:
             depth = f.get('/depth')
             depth = np.array(depth)
