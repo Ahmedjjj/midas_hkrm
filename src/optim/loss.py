@@ -7,7 +7,7 @@ def normalize_prediction_robust(target, mask):
 
     target = target.flatten(start_dim=1)
     mask = mask.flatten(start_dim=1)
-    shift = torch.zeros((target.shape[0], 1))
+    shift = torch.zeros((target.shape[0], 1), device=target.device)
 
     for i, (t, m) in enumerate(zip(target, mask)):
         shift[i] = torch.median(t[m])

@@ -96,7 +96,8 @@ class MidasHKRMNet(nn.Module):
         obj_features = pad_features(features, num_objects, self.max_objects)
 
         for i in range(len(masks)):
-            masks[i] *= classes[i] + 1
+            if len(masks[i]) > 0:
+                masks[i] *= classes[i].reshape(-1, 1, 1)
 
         masks = pad_masks(masks, self.max_objects)
 
