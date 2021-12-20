@@ -13,21 +13,30 @@ from torch.utils.data import random_split, DataLoader
 from torch.optim import Adam
 import tqdm
 import os
+from itertools import groupby
+from functools import reduce
+from operator import add
 
 MAX_OBJECTS = 20
 OBJECT_DETECTION_WEIGHTS = '/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output/model_final.pth'
 SAVE_DIR = '/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output_midas_hkrm'
 DEVICE = 'cuda'
-SAVE_AFTER = 10
-EVAL_AFTER = 10
+SAVE_AFTER = 10000
+EVAL_AFTER = 0
 STEPS = 300000
 TEST_SET_SPLIT = 0.1
 BATCH_SIZE = 6
+EVAL_BATCH_SIZE = 18
 SEED = 42
+DEBUG = False
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+level = logging.INFO
+if DEBUG:
+    level = logging.DEBUG
+
+logger.setLevel(level)
+logging.basicConfig(stream=sys.stdout, level=level)
 
 
 def main():
@@ -68,11 +77,13 @@ def main():
             final_sd[k] = weights
     model.load_state_dict(final_sd)
     logger.info("All weights loaded!")
+    logger.info("Freezing encoder weights")
+    for m in model.backbone.parameters():
+        m.requires_grad = False
 
     logger.info("Preparing Adam optimizer")
     # Almost like the MiDaS paper
-    optimizer = Adam([{'params': model.backbone.parameters(), 'lr': 1e-5},
-                      {'params': model.channel_reduc.parameters(), 'lr': 1e-5}],
+    optimizer = Adam([{'params': model.channel_reduc.parameters(), 'lr': 1e-5}],
                      lr=1e-4, betas=(0.9, 0.999))
 
     logger.info("Preparing loss function (Scale and Shift Invariant Trimmed MAE)")
@@ -100,11 +111,12 @@ def main():
             test_datasets_lengths[name] = test_size
 
             test_dataset, train_dataset = random_split(
+
                 dataset, [test_size, train_size], generator=torch.Generator().manual_seed(SEED))
 
             logger.info(f"Created a test set for dataset {name} of size {test_size}")
-            test_loaders[name] = cycle(DataLoader(test_dataset, batch_size=test_size,
-                                       collate_fn=lambda x: x, shuffle=False))
+            test_loaders[name] = DataLoader(test_dataset, batch_size=EVAL_BATCH_SIZE // num_datasets,
+                                            collate_fn=lambda x: x, shuffle=False)
 
         train_loaders[name] = cycle(DataLoader(train_dataset, batch_size=BATCH_SIZE // num_datasets,
                                                collate_fn=lambda x: x, shuffle=True))
@@ -112,50 +124,33 @@ def main():
     train_losses = {}
     test_losses = {}
 
-    logging.info(f"Starting training for {STEPS}")
-
-    model.train()
+    logger.info(f"Starting training for {STEPS} steps")
     for step in tqdm.tqdm(range(STEPS)):
-        optimizer.zero_grad()
-
         logger.info(f"Training iteration: {step}")
-        loss = 0
-        train_losses[step] = {}
-        for name, loader in train_loaders.items():
-            samples = next(loader)
-            images, gt_disps = zip(*(midas_train_transform(sample) for sample in samples))
-            orig_imgs, _ = zip(*samples)
-            dataset_loss = 0
-            for image, orig_img, gt_disp in zip(images, orig_imgs, gt_disps):
-                prediction = model([orig_img], image.to(DEVICE))
-                dataset_loss += loss_func(prediction, gt_disp.to(DEVICE))
-            loss += dataset_loss
-            train_losses[step][name] = dataset_loss
 
+        optimizer.zero_grad()
+        step_losses = forward_pass(train_loaders, model, loss_func, midas_train_transform, DEVICE)
+        train_losses[step] = dict([(k, float(v)) for k, v in step_losses.items()])
+        loss = reduce(add, step_losses.values())
         loss /= BATCH_SIZE
         loss.backward()
         optimizer.step()
 
-        if step % EVAL_AFTER == 0 and TEST_SET_SPLIT != 0:
+        if EVAL_AFTER > 0 and step % EVAL_AFTER == 0 and TEST_SET_SPLIT != 0:
             logger.info(f"Starting evaluation at step {step}")
             model.eval()
-            test_losses[step] = {}
-            with torch.no_grad():
-                for name, loader in test_loaders.items():
-                    samples = next(loader)
-                    images, gt_disps = zip(*(midas_eval_transform(sample) for sample in samples))
-                    orig_imgs, _ = zip(*samples)
-                    loss = 0
-                    for image, orig_img, gt_disp in zip(images, orig_imgs, gt_disps):
-                        prediction = model([orig_img], image.to(DEVICE))
-                        loss += loss_func(prediction, gt_disp.to(DEVICE))
+            test_losses[step] = dict()
+            for name, test_dataset in test_loaders.items():
+                dataset_loss = 0
+                for _, samples in enumerate(test_dataset, 0):
+                    with torch.no_grad():
+                        dataset_loss += sample_forward_pass(samples, model, loss_func, midas_eval_transform, DEVICE)
 
-                    loss /= len(test_datasets_lengths[name])
-                    test_losses[step][name] = loss
-                    logger.info(f"Test loss at step {step} for dataset {name}: {loss:.3f}")
+                test_losses[step][name] = dataset_loss / test_datasets_lengths[name]
+            logger.info(f"Test losses  at step {step}: {test_losses[step]}")
+            model.train()
 
-        model.train()
-        if step % SAVE_AFTER == 0 and SAVE_AFTER > 0:
+        if SAVE_AFTER > 0 and step % SAVE_AFTER == 0 and SAVE_AFTER > 0:
             logger.info(f"Saving state at step {step}")
             saved_state_filename = f"state_{step}.tar"
 
@@ -168,6 +163,53 @@ def main():
                         'train_losses': train_losses,
                         'test_losses': test_losses,
                         'seed': SEED}, os.path.join(SAVE_DIR, saved_state_filename))
+
+
+def sample_forward_pass(samples, model, loss_func, transform, device):
+    logger.debug(f"Total Batch size is {len(samples)}")
+
+    imgs, gt_disps = zip(*[transform(sample) for sample in samples])
+    orig_imgs, _ = zip(*samples)
+    img_shapes = enumerate([i.shape for i in imgs])
+    grouped_shapes = groupby(sorted(img_shapes, key=lambda x: x[1]), key=lambda x: x[1])
+    loss = 0
+    for _, indices in grouped_shapes:
+        indices = [i[0] for i in indices]
+        batch_imgs = torch.cat([imgs[i] for i in indices]).to(device)
+        batch_disps = torch.cat([gt_disps[i] for i in indices]).to(device)
+        batch_orig = [orig_imgs[i] for i in indices]
+
+        logger.debug(f"Forward pass on mini batch (grouped) of size {len(indices)}")
+        logger.debug(f"Batch input shape: {batch_imgs.shape}")
+
+        batch_predictions = model(batch_orig, batch_imgs)
+        logger.debug(f"Batch predictions shape: {batch_predictions.shape}")
+        logger.debug("Computing loss for batch")
+        logger.debug(f"batch ground truth shape: {batch_disps.shape}")
+
+        batch_loss = loss_func(batch_predictions, batch_disps)
+
+        logger.debug(f"Computed loss: {batch_loss}")
+
+        loss += batch_loss
+    return loss
+
+
+def forward_pass(datasets, model, loss_func, transform, device):
+    def one_pass():
+        losses = {}
+        for name, loader in datasets.items():
+            losses[name] = 0
+            samples = next(loader)
+            logger.debug(f"forward pass for dataset {name}")
+            losses[name] = sample_forward_pass(samples, model, loss_func, transform, device)
+
+        return losses
+    if DEBUG:
+        with torch.autograd.detect_anomaly():
+            return one_pass()
+    else:
+        return one_pass()
 
 
 def cycle(loader):
