@@ -10,12 +10,11 @@ from src.utils.sftp_utils import open_cluster_connection, read_remote_image
 
 
 class RemoteDataset(IterableDataset, ABC):
-
     def __init__(self, remote, username=None):
         self._remote = remote
         if remote:
             if not username:
-                raise ValueError('username must be provided for remote datasets')
+                raise ValueError("username must be provided for remote datasets")
             self._sftp = open_cluster_connection(username)
 
     @property
@@ -44,12 +43,18 @@ class RemoteDataset(IterableDataset, ABC):
         for location_dict in self.locations:
             img_folder, labels_folder = location_dict.values()
             img_folder_path = posixpath.join(self.path_prefix, img_folder)
-            images = self.sftp.listdir(img_folder_path) if self.is_remote else os.listdir(img_folder_path)
+            images = (
+                self.sftp.listdir(img_folder_path)
+                if self.is_remote
+                else os.listdir(img_folder_path)
+            )
             all_samples = [posixpath.join(img_folder_path, image) for image in images]
             if labels_folder:
                 labels = [self.labels_filename(image) for image in images]
-                all_samples = [(image, os.path.join(self.path_prefix, labels_folder, labels)) for (image, labels) in
-                               zip(all_samples, labels)]
+                all_samples = [
+                    (image, os.path.join(self.path_prefix, labels_folder, labels))
+                    for (image, labels) in zip(all_samples, labels)
+                ]
 
             return all_samples
 
@@ -60,10 +65,13 @@ class RemoteDataset(IterableDataset, ABC):
             if type(sample) is tuple:
                 image_path, labels_path = sample
                 if self._remote:
-                    img, labels = read_remote_image(self.sftp, image_path), \
-                                  read_remote_image(self.sftp, labels_path, grayscale=True)
+                    img, labels = read_remote_image(
+                        self.sftp, image_path
+                    ), read_remote_image(self.sftp, labels_path, grayscale=True)
                 else:
-                    img, labels = read_image(image_path), read_image(labels_path, grayscale=True)
+                    img, labels = read_image(image_path), read_image(
+                        labels_path, grayscale=True
+                    )
 
                 yield img, labels
             else:

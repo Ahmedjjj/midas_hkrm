@@ -1,4 +1,3 @@
-
 from src.datasets import Mix6Dataset
 from src.utils import require, read_image, map_disp_to_0_1
 import numpy as np
@@ -15,7 +14,7 @@ class RedWeb(Mix6Dataset):
 
     @property
     def locations(self):
-        return [{'imgs': 'Imgs', 'labels': 'RDs'}]
+        return [{"imgs": "Imgs", "labels": "RDs"}]
 
     def get_disparity(self, labels_path):
         # https://github.com/isl-org/MiDaS/issues/16
