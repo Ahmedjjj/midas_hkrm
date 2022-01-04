@@ -5,8 +5,6 @@ REQUIREMENTS=requirements.txt
 PYTHON=3.9
 CONDA_BASE=$(shell conda info --base)
 
-DOCKERIMAGE=jellouli_docker
-
 create_env:
 	@conda create -n $(ENV) python=$(PYTHON)
 
@@ -27,11 +25,4 @@ install_detectron:
 	f'pip install detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/{CUDA_VERSION}/torch{TORCH_VERSION}/index.html')"
 
 env: create_env install_env install_detectron
-
-image:
-	@docker build -t $(DOCKERIMAGE) .
-
-notebook_docker: image
-	@docker run --rm --network host -v $(shell pwd):/app -w /app \
-	$(DOCKERIMAGE) jupyter notebook --allow-root --no-browser
 
