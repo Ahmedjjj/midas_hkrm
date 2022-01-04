@@ -21,7 +21,7 @@ OBJECT_DETECTION_WEIGHTS = (
     "/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output/model_final.pth"
 )
 
-SAVE_DIR = "/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output_midas_hkrm_v4"
+SAVE_DIR = "/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output_midas_obj_baseline"
 START_STATE = "/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output_midas_hkrm/state_290000.tar"
 
 DEVICE = "cuda"
@@ -44,8 +44,7 @@ def main():
     model = create_midas_hkrm_model(
         max_objects=MAX_OBJECTS,
         object_detection_threshold=0.5,
-        object_model_weights=OBJECT_DETECTION_WEIGHTS,
-        # midas_hkrm_weights=torch.load(START_STATE)["model"] if START_STATE else None,
+        use_hkrm=False,
     )
 
     logger.info("Freezing encoder weights")
