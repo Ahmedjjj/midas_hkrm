@@ -1,12 +1,35 @@
+import logging
+
 import torch
 import torch.nn as nn
-
-import logging
 
 logger = logging.getLogger(__name__)
 
 
-def normalize_prediction_robust(target, mask):
+"""
+Implements the Shift Invariant Trimmed MAE loss.
+Some of this code was taken from: https://gist.github.com/ranftlr/1d6194db2e1dffa0a50c9b0a9549cbd2
+Please see the paper: https://arxiv.org/abs/1907.01341v3 for the mathematical details
+All operation are done in masked fashion, i.e only valid ground truth pixels are used.
+It is assumed all invalid ground truth pixels have value 0.
+"""
+
+
+def normalize_prediction_robust(
+    target: torch.Tensor, mask: torch.Tensor
+) -> torch.Tensor:
+    """
+    Obtain a scale and shift invariant version of the tensor target
+
+
+    Args:
+        target (torch.Tensor): torch.tensor
+        mask (torch.Tensor): mask on the valid pixels in target.
+
+    Returns:
+        torch.Tensor: torch.tensor (normalized target)
+    """
+
     logger.debug(f"normalizing input of shape {target.shape}")
     logger.debug(f"mask has shape : {mask.shape}")
     orig_shape = target.shape
@@ -35,7 +58,17 @@ def normalize_prediction_robust(target, mask):
     return normalized_targets.reshape(orig_shape)
 
 
-def gradient_loss(prediction, target):
+def gradient_loss(prediction: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    """
+    (Masked) gradient loss function.
+
+    Args:
+        prediction (torch.Tensor): prediction tensor.
+        target (torch.Tensor): ground truth tensor.
+
+    Returns:
+        torch.Tensor: tensor of one entry, the gradient loss
+    """
     mask = target > 0
 
     diff = prediction - target
@@ -57,7 +90,15 @@ def gradient_loss(prediction, target):
 
 
 class MultiScaleGradientLoss(nn.Module):
-    def __init__(self, scales=4):
+    """
+    Gradient loss at multiple scales.
+    """
+
+    def __init__(self, scales: int = 4):
+        """
+        Args:
+            scales (int, optional): number of scales to use. Defaults to 4.
+        """
         super().__init__()
         self.__scales = scales
 
@@ -74,7 +115,21 @@ class MultiScaleGradientLoss(nn.Module):
 
 
 class SSITrimmedMAELoss(nn.Module):
-    def __init__(self, trim=0.2, alpha=0.5, scales=4):
+    """
+    Final loss of the model.
+    Concretely this does the following:
+    . Normalize the prediction and the targets into scale and shift invariant versions.
+    . Compute the trimmed MAE and the multi-scale gradient loss and sum them
+    """
+
+    def __init__(self, trim: float = 0.2, alpha: float = 0.5, scales: int = 4):
+        """
+        Args:
+            trim (float, optional): Percentage of residuals to trim. Defaults to 0.2.
+            alpha (float, optional): weight of the gradient loss. Defaults to 0.5.
+            scales (int, optional): number of scales to use. Defaults to 4.
+        """
+
         super().__init__()
         self.__trim_mae = TrimmedMAELoss(trim)
         self.__alpha = alpha
@@ -110,11 +165,19 @@ class SSITrimmedMAELoss(nn.Module):
 
 
 class TrimmedMAELoss(nn.Module):
-    def __init__(self, trim=0.2):
+    """
+    TrimmedMAELoss: Compute the MAE and discard a fraction of the largest residuals
+    """
+
+    def __init__(self, trim: float = 0.2):
+        """
+        Args:
+            trim (float, optional): trimmimg percentage. Defaults to 0.2.
+        """
         super().__init__()
         self.trim = trim
 
-    def forward(self, prediction, target):
+    def forward(self, prediction: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         logger.debug(
             f"Computing TrimmedMAELoss for predictions of shape {prediction.shape} and target of shape {target.shape}"
         )
