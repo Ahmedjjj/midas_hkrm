@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class MidasHKRMTester:
     """
-    A convenience class for running testing on a MidasHKRMModel
+    A convenience class for running a test on a MidasHKRM model
     """
 
     model: nn.Module  # model to test
