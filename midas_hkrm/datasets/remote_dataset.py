@@ -3,13 +3,17 @@ import posixpath
 import random
 from abc import ABC, abstractmethod
 
-from torch.utils.data import IterableDataset
-
 from midas_hkrm.utils.img_utils import read_image
 from midas_hkrm.utils.sftp_utils import open_cluster_connection, read_remote_image
+from torch.utils.data import IterableDataset
 
 
 class RemoteDataset(IterableDataset, ABC):
+    """
+    Abstraction for a remote (sftp) fetched dataset. Documentation is ommited because this code is not used in the rest of the project.
+    A better way to do this is to use sshfs: https://github.com/libfuse/sshfs and mount the remote directory
+    """
+
     def __init__(self, remote, username=None):
         self._remote = remote
         if remote:

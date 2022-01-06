@@ -1,9 +1,13 @@
 from midas_hkrm.datasets import Mix6Dataset
-from midas_hkrm.utils import map_disp_to_0_1
-from midas_hkrm.utils import read_image
+from midas_hkrm.utils import map_disp_to_0_1, read_image
 
 
 class ApolloScape(Mix6Dataset):
+    """
+    ApolloScape Dataset: http://apolloscape.auto/
+    Ground truth: Disparity
+    """
+
     @property
     def name(self):
         return "ApolloScape"

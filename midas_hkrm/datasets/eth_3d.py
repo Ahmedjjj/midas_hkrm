@@ -1,10 +1,15 @@
-from midas_hkrm.datasets import ZeroShotDataset
 import os
-from midas_hkrm.utils import read_image, map_depth_to_disp
+
 import numpy as np
+from midas_hkrm.datasets import ZeroShotDataset
 
 
 class ETH3D(ZeroShotDataset):
+    """
+    Original ETH3D depth benchmark: https://www.eth3d.net/overview
+    Ground truth: Depth
+    """
+
     def __init__(self):
         super().__init__(test=False)
 
@@ -30,6 +35,15 @@ class ETH3D(ZeroShotDataset):
         return os.path.basename(img_name)
 
     def get_depth(self, labels_path, image_shape):
+        """Read depth image. This is a bit particular as depth is given as a 1D binary 4-byte
+        float dump. ETH3D has max depth 72. Points with larger depth are given the value 0.
+
+        Args:
+            labels_path (str): path of the binary dump
+            image_shape (Tuple): shape of the corresponding image
+        Returns:
+            np.ndarray: depth map
+        """
         depth_raw = np.fromfile(labels_path, dtype=np.float32)
         depth = depth_raw.reshape(image_shape)
         depth[depth > 72] = 0

@@ -1,15 +1,15 @@
-import glob
 import os
-import posixpath
 
-import numpy as np
 from midas_hkrm.datasets import Mix6Dataset
-from midas_hkrm.datasets.remote_dataset import RemoteDataset
 from midas_hkrm.utils import map_depth_to_disp, read_image
-from midas_hkrm.utils.errors import require
 
 
 class BlendedMVS(Mix6Dataset):
+    """
+    BlendedMVS dataset: https://github.com/YoYo000/BlendedMVS
+    Ground truth: Disparity (mapped from Depth)
+    """
+
     def __init__(self):
         super().__init__(test=False)
 

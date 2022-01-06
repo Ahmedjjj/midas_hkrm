@@ -1,13 +1,18 @@
-from midas_hkrm.datasets import Mix6Dataset
-from midas_hkrm.utils import require, read_image, map_depth_to_disp
-import numpy as np
 import os
+
+import numpy as np
+from midas_hkrm.datasets import Mix6Dataset
+from midas_hkrm.utils import map_depth_to_disp
 
 
 class TartanAir(Mix6Dataset):
-    def __init__(self, test=False):
-        super().__init__(test)
-        require(test == False, "TartanAir has no predefined test set")
+    """
+    TartanAir dataset: https://theairlab.org/tartanair-dataset/
+    Ground truth: Disparity (mapped from depth)
+    """
+
+    def __init__(self):
+        super().__init__(test=False)
 
     @property
     def name(self):

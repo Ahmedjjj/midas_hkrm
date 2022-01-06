@@ -3,6 +3,11 @@ from midas_hkrm.utils import map_disp_to_0_1, read_image
 
 
 class HRWSI(Mix6Dataset):
+    """
+    HRWSI dataset: https://github.com/KexianHust/Structure-Guided-Ranking-Loss
+    Ground truth: disparity
+    """
+
     @property
     def name(self):
         return "HR-WSI"

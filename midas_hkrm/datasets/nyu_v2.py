@@ -1,12 +1,18 @@
+import os
+
 import h5py
-from scipy.io import loadmat
 import numpy as np
 from midas_hkrm.datasets import ZeroShotDataset
-import os
+from scipy.io import loadmat
 
 
 class NYU(ZeroShotDataset):
-    def __init__(self) -> None:
+    """
+    NYUV2 dataset: https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html
+    Ground truth: Depth
+    """
+
+    def __init__(self):
         super().__init__()
         split_path = os.path.join(self.dataset_path, "splits.mat")
         data_path = os.path.join(self.dataset_path, "nyu_depth_v2_labeled.mat")
@@ -26,7 +32,7 @@ class NYU(ZeroShotDataset):
 
     @property
     def locations(self):
-        return []
+        return []  # Dataset is in the format of MATLAB matrices
 
     def __getitem__(self, index):
         image = self._images[self._indices[index]]

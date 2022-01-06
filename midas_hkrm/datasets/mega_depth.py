@@ -3,11 +3,16 @@ import os
 import h5py
 import numpy as np
 from midas_hkrm.datasets import Mix6Dataset
-from midas_hkrm.utils import map_depth_to_disp, read_image
+from midas_hkrm.utils import map_depth_to_disp
 
 
 class MegaDepth(Mix6Dataset):
-    def __init__(self, test=False):
+    """
+    MegaDepth dataset: https://www.cs.cornell.edu/projects/megadepth/
+    Ground truth: Disparity (mapped from depth)
+    """
+
+    def __init__(self):
         super().__init__(test=False)
 
     @property
