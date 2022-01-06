@@ -1,14 +1,18 @@
-import enum
 import logging
 from collections import OrderedDict
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
-from midas.blocks import FeatureFusionBlock, Interpolate, _make_encoder
+from midas.blocks import (  # the midas code should be on PATH or PYTHONPATH
+    FeatureFusionBlock,
+    Interpolate,
+    _make_encoder,
+)
+
 from midas_hkrm.objects import GeneralizedRCNNObjectDetector
 from midas_hkrm.objects.features import ObjectDetector
 from midas_hkrm.utils import construct_config, get_baseline_config
@@ -20,7 +24,9 @@ logger = logging.getLogger(__name__)
 
 class MidasHKRMNet(nn.Module):
     """
-    A modified MiDaS network that uses object features as extra feature maps in the decoder
+    A modified Midas network that uses object features and object masks as extra feature maps in the decoder.
+    This code is inspired from: https://github.com/isl-org/MiDaS/blob/master/midas/midas_net.py
+    And directly uses the blocks from: https://github.com/isl-org/MiDaS/blob/master/midas/blocks.py
     """
 
     def __init__(
@@ -32,7 +38,18 @@ class MidasHKRMNet(nn.Module):
         features=256,
         device="cuda",
     ):
+        """
+        Create a new MidasHKRM network
 
+        Args:
+            object_feature_extractor (ObjectDetector): the object detection network.
+            max_objects (int): maximum number of objects the network uses.
+            object_feature_dimension (int, optional): the dimension of the object features. Defaults to 1024.
+                                                      this should be perfect a square since the feaature vectors are mapped into square images
+            pretrained_resnet (bool, optional): whether to load pre-trained resnet weights. Defaults to True.
+            features (int, optional): number of features (channels) that the different resolution encoder outputs will be mapped to. Defaults to 256.
+            device (str, optional): device of the model. Defaults to "cuda".
+        """
         super().__init__()
 
         require(
@@ -74,7 +91,9 @@ class MidasHKRMNet(nn.Module):
         )
         self.to(device)
 
-    def forward(self, object_detector_input: List[np.array], depth_input: torch.tensor):
+    def forward(
+        self, object_detector_input: List[np.array], depth_input: torch.Tensor
+    ) -> torch.Tensor:
         """
         Args:
             x (List[np.array]): list of images, assumed to have shape height x width x num_channels
@@ -158,31 +177,76 @@ class MidasHKRMNet(nn.Module):
 
         return torch.squeeze(out, dim=1)
 
-    def _batch_resize_masks(self, masks, size):
+    def _batch_resize_masks(
+        self, masks: List[torch.Tensor], size: Tuple[int]
+    ) -> torch.Tensor:
+        """
+        Resize (using bilinear interpolation) a list of n tensors into one tensor of the desired size
+
+        Args:
+            masks (List[torch.tensor]): list of tensors
+            size (Tuple[int]): desired size: HxW
+
+        Returns:
+            torch.Tensor: tensor of shape (len(masks) x *size)
+        """
         return torch.cat([TF.resize(m, size=size) for m in masks]).reshape(
             -1, self.max_objects, *size
         )
 
-    def _resize_features(self, features, size):
+    def _resize_features(
+        self, features: torch.Tensor, size: Tuple[int]
+    ) -> torch.Tensor:
+        """
+        Given a tensor of feature vectors reshape each feature vector into a square image
+        then biliniearly interpolate to the desired size
+
+        Args:
+            features (torch.Tensor): tensor of feature vectors
+            size (Tuple[int]): desired size: HxW
+
+        Returns:
+            torch.Tensor: torch of len(features) "feature images" of shape size
+        """
         square_side = int(np.sqrt(self.object_feature_dimension))
         feature_squares = features.reshape(features.shape[0], square_side, square_side)
         return TF.resize(feature_squares, size)
 
 
 def create_midas_hkrm_model(
-    max_objects,
-    object_detection_threshold,
-    load_weights=True,
-    object_model_weights=None,
-    random_init_missing=True,
-    device="cuda",
-    midas_hkrm_weights=None,
-    use_hkrm=True,
-):
+    max_objects: int,
+    object_detection_threshold: float,
+    load_weights: bool = True,
+    object_model_weights: str = None,
+    random_init_missing: bool = True,
+    device: str = "cuda",
+    midas_hkrm_weights: torch.Tensor = None,
+    use_hkrm: bool = True,
+) -> MidasHKRMNet:
+    """
+    This is a convenience wrapper around recurring boilerplate model creating code
+    Create a MidasHKRM net, optionally initialize weights
+    Args:
+        max_objects (int): maximum number of objects the model uses.
+        object_detection_threshold (float): probability threshold for the object detection backbone,
+        load_weights (bool, optional): whether to load existing weights for the model. Defaults to True.
+        object_model_weights (str, optional): weights for the object detection model.
+                                              should be provided in load_weights is True.
+                                              Defaults to None.
+        random_init_missing (bool, optional): If True, missing parameters are randomly initialized. Defaults to True.
+        device (str, optional): device of the model. Defaults to "cuda".
+        midas_hkrm_weights (torch.Tensor, optional): pretrained midas hkrm models.
+                                                     if provided the model state_dict loading will be done in strict fashion.
+                                                     Defaults to None.
+        use_hkrm (bool, optional): if True use a HKRM based object detector.
+                                   Otherwise uses a Faster-RCNN-FPN architecture.
+                                   Defaults to True.
+    Returns:
+        MidasHKRMNet: [description]
+    """
     if use_hkrm:
         cfg = construct_config()
-        if load_weights:
-            cfg.MODEL.WEIGHTS = object_model_weights
+        cfg.MODEL.WEIGHTS = object_model_weights
     else:
         cfg = get_baseline_config()
 
