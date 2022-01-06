@@ -1,11 +1,16 @@
 import torch
 
+"""
+Please note: this code was taken as is from: https://gist.github.com/ranftlr/a1c7a24ebb24ce0e2f2ace5bce917022
+"""
 
-def compute_scale_and_shift(prediction, target):
+
+def compute_scale_and_shift(
+    prediction: torch.Tensor, target: torch.Tensor
+) -> torch.Tensor:
     """
     Compute the scale and shift of the prediction (disparity) output of a model
     with a target (disparity) using the least squares criterion
-    Please see : https://gist.github.com/ranftlr/a1c7a24ebb24ce0e2f2ace5bce917022
     """
     mask = target > 0
     a_00 = torch.sum(mask * prediction * prediction, (1, 2))

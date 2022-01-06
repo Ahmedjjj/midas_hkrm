@@ -1,7 +1,7 @@
-from midas.transforms import Resize, NormalizeImage, PrepareForNet
+import cv2
 import torch
 import torchvision.transforms as T
-import cv2
+from midas.transforms import NormalizeImage, PrepareForNet, Resize
 
 # Taken from the discussion in the paper + midas code
 midas_train_transform = T.Compose(
@@ -70,9 +70,4 @@ midas_test_transform = T.Compose(
         PrepareForNet(),
         lambda sample: torch.from_numpy(sample["image"]).unsqueeze(0).float(),
     ]
-)
-
-# Perform augmentation on a batch
-midas_batch_test_transform = lambda x: torch.cat(
-    [midas_test_transform(img) for img in x]
 )
