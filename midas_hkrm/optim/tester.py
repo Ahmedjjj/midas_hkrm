@@ -6,7 +6,7 @@ from typing import Dict, List
 import torch
 import torch.nn as nn
 import tqdm
-from torch.utils.data import DataLoader, Dataset, random_split
+from torch.utils.data import DataLoader, Dataset, random_split, RandomSampler
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +23,7 @@ class MidasHKRMTester:
     datasets: List[Dataset]  # datasets to test on
     seed: int  # seed for creating the test sets
     split_size: float  # percentage of test samples for each dataset
+    same_test_size: bool = False  # if True, the number of test samples from each dataset is the same (the min)
     device: str = "cuda"  # device to run on
     batch_size: int = 1  # batch size for each dataset
 
@@ -36,6 +37,11 @@ class MidasHKRMTester:
         self.test_loaders = dict()
         self.test_datasets_lengths = dict()
 
+        if self.same_test_size:
+            final_test_size = min(
+                [int(len(dataset) * self.test_split_size) for dataset in self.datasets]
+            )
+
         logger.info("Preparing test sets")
         for name, dataset in datasets.items():
             test_size = int(len(dataset) * self.split_size)
@@ -46,7 +52,15 @@ class MidasHKRMTester:
                 [test_size, train_size],
                 generator=torch.Generator().manual_seed(self.seed),
             )
-            logger.info(f"Created a test set for dataset {name} of size {test_size}")
+            if self.same_test_size:
+                test_dataset = RandomSampler(
+                    data_source=test_dataset,
+                    replacement=False,
+                    num_samples=final_test_size,
+                )
+            logger.info(
+                f"Created a test set for dataset {name} of size {len(test_dataset)}"
+            )
             self.test_loaders[name] = DataLoader(
                 test_dataset,
                 batch_size=self.batch_size,
