@@ -39,21 +39,32 @@ All the code is under the **midas_hkrm** package and is documented. The stucture
       --save_path SAVE_PATH save results as dict
      ```
  - `eval_midas_hkrm.py`: script to run evaluations of MidasHKRM. The script takes the following arguments:
- - `eval_hkrm.py`: script to run COCO 2017 validation set evaluation on the modified HKRM model. The script takes the following arguments
+ - `eval_hkrm.py`: script to run COCO 2017 validation set evaluation on the modified HKRM model. The script takes the following arguments:
+ ``` text
+    usage: eval_hkrm.py [-h] model_state
+
+    Eval a HKRM model
+
+    positional arguments:
+      model_state
+
+    optional arguments:
+      -h, --help   show this help message and exit
+  ```
 
 
-## Reproducilbility (Only on the cluster)
+## Reproducibility (Only on the cluster)
 For the HKRM COCO 2017 test set results:
 ``` bash
     cd /runai-ivrl-scratch/students/2021-fall-sp-jellouli/midas_hkrm
     conda activate jellouli-env
-    python eval_hkrm.py --model /runai-ivrl-scratch/students/2021-fall-sp-jellouli/output/model_(TODO).pth
+    PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH DETECTRON2_DATASETS=$(pwd)/data/datasets python3 eval_hkrm.py /runai-ivrl-scratch/students/2021-fall-sp-jellouli/output/model_0254999.pth
 ```
 For the reported results on Midas 2.1:
 ``` bash
     cd /runai-ivrl-scratch/students/2021-fall-sp-jellouli/midas_hkrm
     conda activate jellouli-env
-    python eval_midas.py --nyu --tum --eth
+    PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas.py --nyu --tum --eth
 ```
 For the reported MidasHKRM results:
 TODO
