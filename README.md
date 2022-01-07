@@ -25,20 +25,40 @@ All the code is under the **midas_hkrm** package and is documented. The stucture
 - `zero_shot`: contains the code we use for zero-shot evaluation. Namely the different evaluation criteria as well as an `Evaluator` abstraction.
 
 ## Top level scripts
-- `train_hkrm.py`: script that we used to train the modified hkrm model
+- `train_hkrm.py`: script that we used to train the modified HKRM model
 - `train_midas_hkrm.py` : script that we used to train one of the MidasHKRM models
 - `eval_midas.py`: script to run evaluations on MiDas 2.1. The script takes the following arguments:
   ``` text
      usage: eval_midas.py [-h] [--cpu] [--nyu] [--tum] [--eth] [--save_path SAVE_PATH]
      optional arguments:
       -h, --help            show this help message and exit
-      --cpu  use the cpu instead of the gpu
-      --nyu  eval on NYUv2 test Set
-      --tum  eval on TUM dynamic subset (only for static camera)
-      --eth  eval on ETH3D
+      --cpu  # use the cpu instead of the gpu
+      --nyu  # eval on NYUv2 test Set
+      --tum  # eval on TUM dynamic subset (only for static camera)
+      --eth  # eval on ETH3D
       --save_path SAVE_PATH save results as dict
      ```
  - `eval_midas_hkrm.py`: script to run evaluations of MidasHKRM. The script takes the following arguments:
+ ```text
+ usage: eval_midas_hkrm.py [-h] --object_weights OBJECT_WEIGHTS [--max_objects MAX_OBJECTS] [--detection_threshold DETECTION_THRESHOLD] --states [STATES ...] [--cpu] [--nyu] [--tum]
+                          [--eth] [--base] [--test_set] [--save_path SAVE_PATH]
+
+Eval a MidasHKRM model
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --object_weights OBJECT_WEIGHTS, -o OBJECT_WEIGHTS
+  --max_objects MAX_OBJECTS, -m MAX_OBJECTS
+  --detection_threshold DETECTION_THRESHOLD, -t DETECTION_THRESHOLD
+  --states [STATES ...], -s [STATES ...] # state files to eval on
+  --cpu
+  --nyu
+  --tum
+  --eth 
+  --base # use MidasBASE
+  --test_set # eval on test set
+  --save_path SAVE_PATH
+```
  - `eval_hkrm.py`: script to run COCO 2017 validation set evaluation on the modified HKRM model. The script takes the following arguments:
  ``` text
     usage: eval_hkrm.py [-h] model_state
