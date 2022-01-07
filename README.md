@@ -13,7 +13,7 @@ Otherwise, the file requirements.txt specifies all needed packages to run the pr
 Additionally, `torch` and `torchvision` are required. We omit these from the requirements because we faced many issues with CUDA version dependencies.  
 [light-the-torch](https://github.com/pmeier/light-the-torch) is a a great tool that installs the right version automatically.  
 Finally, `detectron2` needs to be installed: [instructions](https://github.com/facebookresearch/detectron2/blob/main/INSTALL.md).  
-Note that the `make env` installs the right version of `torch`, `torchvision` and `detectron2`.
+Note that `make env` installs the right version of `torch`, `torchvision` and `detectron2`.
 
 ## Package structure:
 All the code is under the **midas_hkrm** package and is documented. The stucture of the sub-packages is the following:
@@ -27,6 +27,7 @@ All the code is under the **midas_hkrm** package and is documented. The stucture
 ## Top level scripts
 - `train_hkrm.py`: script that we used to train the modified HKRM model
 - `train_midas_hkrm.py` : script that we used to train one of the MidasHKRM models
+- `optimize_hyperparams.py`: script that we used for the hyper-parameter search
 - `eval_midas.py`: script to run evaluations on MiDas 2.1. The script takes the following arguments:
   ``` text
      usage: eval_midas.py [-h] [--cpu] [--nyu] [--tum] [--eth] [--save_path SAVE_PATH]
