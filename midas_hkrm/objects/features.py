@@ -1,38 +1,52 @@
 import abc
-import enum
-from typing import Union, List
+from typing import List, Tuple
 
 import detectron2.data.transforms as T
+import numpy as np
 import torch
-from detectron2 import model_zoo
 from detectron2.checkpoint import DetectionCheckpointer
-from detectron2.config import get_cfg
 from detectron2.config import CfgNode
 from detectron2.modeling import build_model
-import numpy as np
 from midas_hkrm.objects import HKRMROIHeads
 
 
 class ObjectDetector(abc.ABC):
+    """
+    Abstraction for any object detection backbone that can provide feature vectors, object classes and object masks for
+    an input image.
+    """
+
     @abc.abstractmethod
-    def get_object_features(
-        self,
-        imgs: Union[List[np.array], np.array, torch.tensor],
-        outputs: List[str],
-        **kwargs
-    ):
+    def get_object_features(self, imgs: List[np.array], outputs: List[str], **kwargs):
         """
         Extract object features, mask, classes from a list of images
 
         Args:
-            imgs (List[np.array]): image list, should be in the same format as the model expected format
+            imgs (List[np.array]): image list, should be in the same format as the model expected format.
             outputs (List[str]): a combination of ["features", "num_objects", "classes", "masks"]
-
+                                . if "features" is present, return a tensor of feature vectors,
+                                      return one tensor for all images in the batch (as done in detectron2).
+                                . if "num_objects" is present, return a list with length equal to len(imgs),
+                                      with the number of detected objects for each image.
+                                . if "classes" is present, return a list of vectors, on for each image,
+                                      with the class of each detected object.
+                                . if "masks" is present return a list of tensors, one for each image,
+                                      each tensor contains a mask for each detected object.
+                                The order should be strictly "features", "num_objects", "classes", "masks".
         """
         raise NotImplementedError()
 
     @classmethod
-    def get_object_mask(cls, img, box_coords):
+    def get_object_mask(cls, img: np.ndarray, box_coords: Tuple[float]) -> torch.Tensor:
+        """
+        Given an input image, construct an object mask at the given coordinates.
+        Args:
+            img (np.ndarray): original image
+            box_coords (Tuple[float]): box coordinates, should be in the format
+                                       (upper_corner_x, upper_corner_y, lower_corner_x, lower_corner_y)
+        Returns:
+            torch.Tensor: object mask
+        """
         res = torch.zeros(img.shape[:2])
         obj_coords = [int(coord) for coord in box_coords]
         x0, y0, x1, y1 = obj_coords
@@ -40,7 +54,18 @@ class ObjectDetector(abc.ABC):
         return res
 
     @classmethod
-    def get_batch_object_masks(cls, img, boxes_tensor):
+    def get_batch_object_masks(
+        cls, img: np.ndarray, boxes_tensor: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Convenience function to get masks in batch fashion
+        Args:
+            img (np.ndarray): original image
+            boxes_tensor (torch.Tensor): A 2D tensor of shape (num_objects, 4), one for each box.
+
+        Returns:
+            torch.Tensor: tensor of masks, of shape (len(boxes_tensor), H, W)
+        """
         # num boxes x img_width x img_height tensor
         res = torch.zeros((boxes_tensor.shape[0], *img.shape[:2]))
         for index, box_coords in enumerate(boxes_tensor):
@@ -50,9 +75,20 @@ class ObjectDetector(abc.ABC):
 
 
 class GeneralizedRCNNObjectDetector(ObjectDetector):
-    """A Wrapper around a detectron2 based object detector"""
+    """
+    A Wrapper around a detectron2 based object detector. Please see the GeneralizedRCNN architecture in detectron2.
+    This class will:
+        . load the model weights.
+        . use the model in eval mode and run the evaluation with no gradients.
+        . Optionally resize the input before passing it through the model.
+    """
 
     def __init__(self, cfg: CfgNode, resize=False):
+        """
+        Args:
+            cfg (CfgNode): detectron2 config node
+            resize (bool, optional): if True, resize the input to the model. Defaults to False.
+        """
         self.model = build_model(cfg)
         DetectionCheckpointer(self.model).load(cfg.MODEL.WEIGHTS)
         self.model.eval()
@@ -63,12 +99,7 @@ class GeneralizedRCNNObjectDetector(ObjectDetector):
         )
         self.resize = resize
 
-    def get_object_features(
-        self,
-        imgs: Union[List[np.array], np.array, torch.tensor],
-        outputs: List[str],
-        **kwargs
-    ):
+    def get_object_features(self, imgs: List[np.array], outputs: List[str], **kwargs):
         with torch.no_grad():
             model_input = []
             for img in imgs:

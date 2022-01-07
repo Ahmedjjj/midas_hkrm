@@ -258,7 +258,7 @@ class HKRMBoxHead(nn.Module):
 @ROI_HEADS_REGISTRY.register()
 class HKRMROIHeads(ROIHeads):
     """
-    HKRM based RoIHeads. Follows the detectron2 interface for ROIheads.
+    HKRM based RoIHeads. Follows the detectron2 interface for ROIHeads.
     """
 
     @configurable
