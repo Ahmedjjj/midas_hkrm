@@ -92,7 +92,7 @@ For the reported MidasBASE results:
 TODO
 ## Acknowledgments
 This code is based on:
-- MiDas: [paper](https://arxiv.org/abs/1907.01341), [code](https://github.com/isl-org/MiDaS)
+- MiDaS: [paper](https://arxiv.org/abs/1907.01341), [code](https://github.com/isl-org/MiDaS)
 - HKRM: [paper](https://arxiv.org/abs/1810.12681), [code](https://github.com/chanyn/HKRM)
 - Detectron2: [code](https://github.com/facebookresearch/detectron2)
 
