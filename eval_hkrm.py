@@ -1,46 +1,33 @@
-import glob
-import pickle
-import os
-
+import argparse
 
 import torch
-from detectron2.evaluation import COCOEvaluator
-from detectron2.data import DatasetCatalog, build_detection_test_loader, DatasetMapper
-from detectron2.evaluation import inference_on_dataset
-
-from midas_hkrm.utils.objects_utils import construct_config
-import midas_hkrm.objects
+from detectron2.data import DatasetCatalog, DatasetMapper, build_detection_test_loader
+from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.modeling import build_model
+
+import midas_hkrm.objects  # needed to register the HKRMROIHeads
+from midas_hkrm.utils.objects_utils import construct_config
 
 OUTPUT_DIR = "/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output"
 
 
-def main():
-
+def eval_hkrm(model_state_path):
+    # Load checkpoint
     cfg = construct_config()
     model = build_model(cfg)
+    checkpoint = torch.load(model_state_path)
+    model.load_state_dict(checkpoint["model"])
 
     evaluator = COCOEvaluator("coco_2017_val")
     data = DatasetCatalog["coco_2017_val"]()
     dataset = build_detection_test_loader(
         dataset=data, mapper=DatasetMapper(cfg, is_train=False)
     )
-
-    models = glob.glob(os.path.join(OUTPUT_DIR, "model_*.pth"))
-    res = dict()
-    for checkpoint_f in sorted(models):
-        checkpoint = torch.load(checkpoint_f)
-        model.load_state_dict(checkpoint["model"])
-        res[checkpoint_f] = inference_on_dataset(model, dataset, evaluator)
-
-    with open(
-        os.path.join(
-            "/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output", "eval.pickle"
-        ),
-        "wb",
-    ) as handle:
-        pickle.dump(res, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    inference_on_dataset(model, dataset, evaluator)
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Eval a HKRM model")
+    parser.add_argument("model_state", type=str)
+    parser.parse_args()
+    eval_hkrm(parser.model_state)

@@ -1,6 +1,5 @@
 import logging
 
-import torch
 from torch.optim import Adam
 
 from midas_hkrm.datasets import (
@@ -21,8 +20,9 @@ OBJECT_DETECTION_WEIGHTS = (
     "/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output/model_final.pth"
 )
 
-SAVE_DIR = "/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output_midas_obj_baseline"
-START_STATE = "/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output_midas_hkrm/state_290000.tar"
+SAVE_DIR = (
+    "/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output_midas_obj_baseline"
+)
 
 DEVICE = "cuda"
 

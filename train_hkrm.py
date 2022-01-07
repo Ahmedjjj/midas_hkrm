@@ -1,8 +1,8 @@
-from midas_hkrm.utils.objects_utils import construct_config, HKRMTrainer
-from detectron2.utils.logger import setup_logger
-from midas_hkrm.objects.hkrm_roi_heads import HKRMROIHeads
-
 import os
+
+from detectron2.utils.logger import setup_logger
+
+from midas_hkrm.utils.objects_utils import HKRMTrainer, construct_config
 
 
 def main():

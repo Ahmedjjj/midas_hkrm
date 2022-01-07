@@ -1,6 +1,5 @@
 import logging
 
-import torch
 from torch.optim import Adam
 
 from midas_hkrm.datasets import (
@@ -22,7 +21,6 @@ OBJECT_DETECTION_WEIGHTS = (
 )
 
 SAVE_DIR = "/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output_midas_hkrm_v4"
-START_STATE = "/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output_midas_hkrm/state_290000.tar"
 
 DEVICE = "cuda"
 
@@ -45,7 +43,6 @@ def main():
         max_objects=MAX_OBJECTS,
         object_detection_threshold=0.5,
         object_model_weights=OBJECT_DETECTION_WEIGHTS,
-        # midas_hkrm_weights=torch.load(START_STATE)["model"] if START_STATE else None,
     )
 
     logger.info("Freezing encoder weights")
