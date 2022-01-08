@@ -29,5 +29,5 @@ def eval_hkrm(model_state_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Eval a HKRM model")
     parser.add_argument("model_state", type=str)
-    parser.parse_args()
-    eval_hkrm(parser.model_state)
+    args = parser.parse_args()
+    eval_hkrm(args.model_state)
