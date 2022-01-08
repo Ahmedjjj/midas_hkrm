@@ -245,9 +245,11 @@ def create_midas_hkrm_model(
         MidasHKRMNet: [description]
     """
     if use_hkrm:
+        logger.info("Creating hkrm based network")
         cfg = construct_config()
         cfg.MODEL.WEIGHTS = object_model_weights
     else:
+        logger.info("creating baseline network")
         cfg = get_baseline_config()
 
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = object_detection_threshold

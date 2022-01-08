@@ -6,7 +6,7 @@ from typing import Dict, List
 import torch
 import torch.nn as nn
 import tqdm
-from torch.utils.data import DataLoader, Dataset, random_split, RandomSampler
+from torch.utils.data import DataLoader, Dataset, Subset, random_split
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class MidasHKRMTester:
     datasets: List[Dataset]  # datasets to test on
     seed: int  # seed for creating the test sets
     split_size: float  # percentage of test samples for each dataset
-    same_test_size: bool = False  # if True, the number of test samples from each dataset is the same (the min)
+    max_test_size: int = None  # if specified, this is the maximum number of test samples from each dataset
     device: str = "cuda"  # device to run on
     batch_size: int = 1  # batch size for each dataset
 
@@ -37,10 +37,8 @@ class MidasHKRMTester:
         self.test_loaders = dict()
         self.test_datasets_lengths = dict()
 
-        if self.same_test_size:
-            final_test_size = min(
-                [int(len(dataset) * self.test_split_size) for dataset in self.datasets]
-            )
+        if self.max_test_size:
+            final_test_size = self.max_test_size
 
         logger.info("Preparing test sets")
         for name, dataset in datasets.items():
@@ -52,12 +50,8 @@ class MidasHKRMTester:
                 [test_size, train_size],
                 generator=torch.Generator().manual_seed(self.seed),
             )
-            if self.same_test_size:
-                test_dataset = RandomSampler(
-                    data_source=test_dataset,
-                    replacement=False,
-                    num_samples=final_test_size,
-                )
+            if self.max_test_size:
+                test_dataset = Subset(test_dataset, range(final_test_size))
             logger.info(
                 f"Created a test set for dataset {name} of size {len(test_dataset)}"
             )
@@ -82,7 +76,7 @@ class MidasHKRMTester:
                 for batch in tqdm.tqdm(loader):
                     dataset_loss += self._optimized_forward_pass(samples=batch)
                 logger.info(f"Test loss on {name}: {dataset_loss}")
-                test_losses[name] = dataset_loss
+                test_losses[name] = float(dataset_loss)
             return test_losses
 
     def _optimized_forward_pass(self, samples: torch.Tensor) -> torch.Tensor:
