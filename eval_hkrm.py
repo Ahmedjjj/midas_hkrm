@@ -7,7 +7,9 @@ from detectron2.modeling import build_model
 
 import midas_hkrm.objects  # needed to register the HKRMROIHeads
 from midas_hkrm.utils.objects_utils import construct_config
+from midas_hkrm.utils import setup_logger
 
+setup_logger()
 OUTPUT_DIR = "/runai-ivrl-scratch/students/2021-fall-sp-jellouli/output"
 
 
