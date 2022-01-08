@@ -1,6 +1,6 @@
 
 ## Introduction
-This is the code for my semester project at the Image and Visual Representation Lab (IVRL) at EPFL. The idea is to explore the usage of object detection for monocular depth estimation. Please see the file (TODO INSERT REPORT NAME) for details.
+This is the code for my semester project at the Image and Visual Representation Lab (IVRL) at EPFL. The idea is to explore the usage of object detection for monocular depth estimation. Please see the file report_jellouli.pdf for details.
 
 ## Cloning the repository
 Please use `git clone --recursive` instead of `git clone` so as to clone the used submodule.
