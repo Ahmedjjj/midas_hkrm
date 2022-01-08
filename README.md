@@ -73,7 +73,6 @@ optional arguments:
       -h, --help   show this help message and exit
   ```
 
-
 ## Reproducibility (Only on the cluster)
 For the HKRM COCO 2017 test set results:
 ``` bash
@@ -89,7 +88,6 @@ For the reported results on Midas 2.1:
 ```
 For the reported MidasRandom results:
 ``` bash
-bash
     cd /runai-ivrl-scratch/students/2021-fall-sp-jellouli/midas_hkrm
     conda activate jellouli-env
     PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas.py --nyu -m 20 -t 0.4 -s /runai-ivrl-scratch/students/2021-fall-sp-jellouli/out_midas_hkrm/model_70000.tar -o /runai-ivrl-scratch/students/2021-fall-sp-jellouli/output/model_final.pth
@@ -102,21 +100,21 @@ For the reported MidasHKRMV2 results:
     PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas.py --nyu -m 20 -t 0.4 -s /runai-ivrl-scratch/students/2021-fall-sp-jellouli/out_midas_hkrm_v2/model_69999.tar -o /runai-ivrl-scratch/students/2021-fall-sp-jellouli/output/model_final.pth
 ```
 For the reported MidasHKRMV3 results:
-``` bash
+```bash
     cd /runai-ivrl-scratch/students/2021-fall-sp-jellouli/midas_hkrm
     conda activate jellouli-env
     PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas.py --nyu -m 16 -t 0.3 -s /runai-ivrl-scratch/students/2021-fall-sp-jellouli/out_midas_hkrm_v3/model_69999.tar -o /runai-ivrl-scratch/students/2021-fall-sp-jellouli/output/model_final.pth
-    ```
+```
     
 For the reported MidasHKRMV4 results:
 ```bash
-cd /runai-ivrl-scratch/students/2021-fall-sp-jellouli/midas_hkrm
+    cd /runai-ivrl-scratch/students/2021-fall-sp-jellouli/midas_hkrm
     conda activate jellouli-env
-    PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas.py --nyu -m 15 -t 0.5 -s /runai-ivrl-scratch/students/2021-fall-sp-jellouli/out_midas_hkrm_v4/model_69999.tar -o /runai-ivrl-scratch/students/2021-fall-sp-jellouli/output/model_final.pth
+    PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas.py --     nyu -m 15 -t 0.5 -s /runai-ivrl-scratch/students/2021-fall-sp-jellouli/out_midas_hkrm_v4/model_69999.tar -o /runai-ivrl-scratch/students/2021-fall-sp-             jellouli/output/model_final.pth
 ```
 For the reported MidasBASE results:
 ```bash
-cd /runai-ivrl-scratch/students/2021-fall-sp-jellouli/midas_hkrm
+    cd /runai-ivrl-scratch/students/2021-fall-sp-jellouli/midas_hkrm
     conda activate jellouli-env
     PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas.py --nyu --base -m 15 -t 0.5 -s /runai-ivrl-scratch/students/2021-fall-sp-jellouli/out_midas_obj_baseline/model_69999.tar
 ```
