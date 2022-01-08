@@ -1,6 +1,6 @@
 
 ## Introduction
-This is the code for my semester project at the Image and Visual Representation Lab (IVRL) at EPFL. The idea is to explore the usage of object detection for monocular depth estimation. Please see the file (TODO INSERT REPORT NAME) for details.
+This is the code for my semester project at the Image and Visual Representation Lab (IVRL) at EPFL. The idea is to explore the usage of object detection for monocular depth estimation. Please see the file report_jellouli.pdf for details.
 
 ## Cloning the repository
 Please use `git clone --recursive` instead of `git clone` so as to clone the used submodule.
@@ -13,7 +13,7 @@ Otherwise, the file requirements.txt specifies all needed packages to run the pr
 Additionally, `torch` and `torchvision` are required. We omit these from the requirements because we faced many issues with CUDA version dependencies.  
 [light-the-torch](https://github.com/pmeier/light-the-torch) is a a great tool that installs the right version automatically.  
 Finally, `detectron2` needs to be installed: [instructions](https://github.com/facebookresearch/detectron2/blob/main/INSTALL.md).  
-Note that the `make env` installs the right version of `torch`, `torchvision` and `detectron2`.
+Note that `make env` installs the right version of `torch`, `torchvision` and `detectron2`.
 
 ## Package structure:
 All the code is under the **midas_hkrm** package and is documented. The stucture of the sub-packages is the following:
@@ -27,6 +27,7 @@ All the code is under the **midas_hkrm** package and is documented. The stucture
 ## Top level scripts
 - `train_hkrm.py`: script that we used to train the modified HKRM model
 - `train_midas_hkrm.py` : script that we used to train one of the MidasHKRM models
+- `optimize_hyperparams.py`: script that we used for the hyper-parameter search
 - `eval_midas.py`: script to run evaluations on MiDas 2.1. The script takes the following arguments:
   ``` text
      usage: eval_midas.py [-h] [--cpu] [--nyu] [--tum] [--eth] [--save_path SAVE_PATH]
@@ -72,7 +73,6 @@ optional arguments:
       -h, --help   show this help message and exit
   ```
 
-
 ## Reproducibility (Only on the cluster)
 For the HKRM COCO 2017 test set results:
 ``` bash
@@ -84,12 +84,40 @@ For the reported results on Midas 2.1:
 ``` bash
     cd /runai-ivrl-scratch/students/2021-fall-sp-jellouli/midas_hkrm
     conda activate jellouli-env
-    PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas.py --nyu --tum --eth
+    PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas.py --nyu
 ```
-For the reported MidasHKRM results:
-TODO
+For the reported MidasRandom results:
+``` bash
+    cd /runai-ivrl-scratch/students/2021-fall-sp-jellouli/midas_hkrm
+    conda activate jellouli-env
+    PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas.py --nyu -m 20 -t 0.4 -s /runai-ivrl-scratch/students/2021-fall-sp-jellouli/out_midas_hkrm/model_70000.tar -o /runai-ivrl-scratch/students/2021-fall-sp-jellouli/output/model_final.pth
+```
+
+For the reported MidasHKRMV2 results:
+``` bash
+    cd /runai-ivrl-scratch/students/2021-fall-sp-jellouli/midas_hkrm
+    conda activate jellouli-env
+    PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas.py --nyu -m 20 -t 0.4 -s /runai-ivrl-scratch/students/2021-fall-sp-jellouli/out_midas_hkrm_v2/model_69999.tar -o /runai-ivrl-scratch/students/2021-fall-sp-jellouli/output/model_final.pth
+```
+For the reported MidasHKRMV3 results:
+```bash
+    cd /runai-ivrl-scratch/students/2021-fall-sp-jellouli/midas_hkrm
+    conda activate jellouli-env
+    PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas.py --nyu -m 16 -t 0.3 -s /runai-ivrl-scratch/students/2021-fall-sp-jellouli/out_midas_hkrm_v3/model_69999.tar -o /runai-ivrl-scratch/students/2021-fall-sp-jellouli/output/model_final.pth
+```
+    
+For the reported MidasHKRMV4 results:
+```bash
+    cd /runai-ivrl-scratch/students/2021-fall-sp-jellouli/midas_hkrm
+    conda activate jellouli-env
+    PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas.py --     nyu -m 15 -t 0.5 -s /runai-ivrl-scratch/students/2021-fall-sp-jellouli/out_midas_hkrm_v4/model_69999.tar -o /runai-ivrl-scratch/students/2021-fall-sp-             jellouli/output/model_final.pth
+```
 For the reported MidasBASE results:
-TODO
+```bash
+    cd /runai-ivrl-scratch/students/2021-fall-sp-jellouli/midas_hkrm
+    conda activate jellouli-env
+    PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas.py --nyu --base -m 15 -t 0.5 -s /runai-ivrl-scratch/students/2021-fall-sp-jellouli/out_midas_obj_baseline/model_69999.tar
+```
 ## Acknowledgments
 This code is based on:
 - MiDaS: [paper](https://arxiv.org/abs/1907.01341), [code](https://github.com/isl-org/MiDaS)
