@@ -39,21 +39,21 @@ def eval_model(
 
     if nyu:
         evaluator = NyuV2Evaluator(
-            model=model, transform=midas_test_transform, device=device, pass_input=True
+            model=model, transform=midas_test_transform, device=device, pass_input=False
         )
         eval_results["nyu"] = evaluator.evaluate()
         logger.info(f"Loss on NYUv2: {eval_results['nyu']}")
 
     if eth:
         evaluator = ETH3DEvaluator(
-            model=model, transform=midas_test_transform, device=device, pass_input=True
+            model=model, transform=midas_test_transform, device=device, pass_input=False
         )
         eval_results["eth"] = evaluator.evaluate()
         logger.info(f"Loss on ETH3D: {eval_results['eth']}")
 
     if tum:
         evaluator = TUMEvaluator(
-            model=model, transform=midas_test_transform, device=device, pass_input=True
+            model=model, transform=midas_test_transform, device=device, pass_input=False
         )
         eval_results["tum"] = evaluator.evaluate()
         logger.info(f"Loss on TUM: {eval_results['tum']}")
