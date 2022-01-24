@@ -90,7 +90,7 @@ For the reported MidasRandom results:
 ``` bash
     cd /runai-ivrl-scratch/students/2021-fall-sp-jellouli/midas_hkrm
     conda activate jellouli-env
-    PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas_hkrm.py --nyu -m 20 -t 0.4 -s /runai-ivrl-scratch/students/2021-fall-sp-jellouli/output_midas_hkrm/state_70000.tar -o /runai-ivrl-scratch/students/2021-fall-sp-jellouli/output/model_final.pth
+    PYTHONPATH=$(pwd)/external/MiDaS:$PYTHONPATH ZERO_SHOT_DATASETS=/runai-ivrl-scratch/students/2021-fall-sp-jellouli/zero_shot_datasets python eval_midas_hkrm.py --nyu -m 20 -t 0.4 -s /runai-ivrl-scratch/students/2021-fall-sp-jellouli/output_midas_hkrm/state_70000.tar -o /runai-ivrl-scratch/students/2021-fall-sp-jellouli/output_midas_hkrm/state_270000.tar
 ```
 
 For the reported MidasHKRMV2 results:
