@@ -157,10 +157,17 @@ class MidasHKRMTrainer:
             with open(os.path.join(self.save_path, "last_iter.txt"), "r") as f:
                 state_filename = f.readline().strip()
 
+        logger.info(f"Initializing state from {self.save_path}/{state_filename}")
         state = torch.load(os.path.join(self.save_path, state_filename))
         self.model.load_state_dict(state["model"])
+        logger.info(f"Initialized model state from {self.save_path}/{state_filename}")
+
         state.pop("model")
         self.optimizer.load_state_dict(state["optimizer"])
+        logger.info(
+            f"Initialized optimizer state from {self.save_path}/{state_filename}"
+        )
+
         state.pop("optimizer")
         self.train_losses = OrderedDict(state["train_losses"])
         state.pop("train_losses")
@@ -168,7 +175,7 @@ class MidasHKRMTrainer:
         state.pop("test_losses")
 
         for k, v in state.items():
-            self.__setattribute__(k, v)
+            self.__setattr__(k, v)
 
         self._prepare_loaders()
         logger.info(f"Loaded state: {state_filename}")
