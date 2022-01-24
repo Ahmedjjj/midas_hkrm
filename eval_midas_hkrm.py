@@ -45,6 +45,15 @@ def eval_model(
     logger.info(f"Num objects {num_objects}")
 
     for midas_hkrm_state in midas_hkrm_states:
+
+        if save and os.path.isfile(
+            os.path.join(
+                save_dir,
+                os.path.splitext(os.path.basename(midas_hkrm_state))[0] + ".pickle",
+            )
+        ):
+            logger.info(f"skipping {midas_hkrm_state}")
+            continue
         logger.info(f"MidasHKRM state {midas_hkrm_state}")
 
         state = torch.load(midas_hkrm_state)
